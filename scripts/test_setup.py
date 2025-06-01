@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Setup Test Script - 测试实验环境配置
+Setup Test Script - Test Experiment Environment Configuration
 
-此脚本验证所有必需的依赖、模型和数据文件是否正确配置。
-在运行主实验之前建议先运行此脚本进行验证。
+This script verifies that all required dependencies, models, and data files are correctly configured.
+It is recommended to run this script for verification before running the main experiment.
 """
 
 import os
@@ -16,34 +16,34 @@ from pathlib import Path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_python_environment():
-    """测试 Python 环境和基础依赖"""
-    print("🔍 测试 Python 环境...")
+    """Test Python environment and basic dependencies"""
+    print("🔍 Testing Python environment...")
     
     try:
         import torch
         print(f"✅ PyTorch {torch.__version__}")
         
         if torch.cuda.is_available():
-            print(f"✅ CUDA 可用: {torch.cuda.get_device_name(0)}")
-            print(f"   GPU 内存: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f}GB")
+            print(f"✅ CUDA available: {torch.cuda.get_device_name(0)}")
+            print(f"   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f}GB")
         else:
-            print("⚠️  CUDA 不可用，将使用 CPU（速度较慢）")
+            print("⚠️  CUDA not available, will use CPU (slower)")
     except ImportError:
-        print("❌ PyTorch 未安装")
+        print("❌ PyTorch not installed")
         return False
     
     try:
         import transformers
         print(f"✅ Transformers {transformers.__version__}")
     except ImportError:
-        print("❌ Transformers 未安装")
+        print("❌ Transformers not installed")
         return False
     
     try:
         import datasets
         print(f"✅ Datasets {datasets.__version__}")
     except ImportError:
-        print("❌ Datasets 未安装")
+        print("❌ Datasets not installed")
         return False
     
     try:
@@ -51,16 +51,16 @@ def test_python_environment():
         import pandas as pd
         import matplotlib.pyplot as plt
         import seaborn as sns
-        print("✅ 数据分析库 (numpy, pandas, matplotlib, seaborn)")
+        print("✅ Data analysis libraries (numpy, pandas, matplotlib, seaborn)")
     except ImportError as e:
-        print(f"❌ 数据分析库缺失: {e}")
+        print(f"❌ Missing data analysis library: {e}")
         return False
     
     return True
 
 def test_source_files():
-    """测试源代码文件是否存在"""
-    print("\n📁 测试源代码文件...")
+    """Test if source code files exist"""
+    print("\n📁 Testing source code files...")
     
     required_files = [
         "src/utils.py",
@@ -80,22 +80,22 @@ def test_source_files():
             missing_files.append(file_path)
     
     if missing_files:
-        print(f"\n⚠️  缺少 {len(missing_files)} 个源文件")
+        print(f"\n⚠️  Missing {len(missing_files)} source files")
         return False
     
     return True
 
 def test_imports():
-    """测试核心模块导入"""
-    print("\n🔧 测试模块导入...")
+    """Test core module imports"""
+    print("\n🔧 Testing module imports...")
     
     test_modules = [
-        ("src.utils", "下载和处理工具"),
-        ("src.model_loader", "模型加载器"),
-        ("src.noise_injection", "噪声注入"),
-        ("src.evaluation", "评估模块"),
-        ("src.fine_tuning", "微调模块"),
-        ("src.attention_visualizer", "注意力可视化")
+        ("src.utils", "Download and Processing Tools"),
+        ("src.model_loader", "Model Loader"),
+        ("src.noise_injection", "Noise Injection"),
+        ("src.evaluation", "Evaluation Module"),
+        ("src.fine_tuning", "Fine-tuning Module"),
+        ("src.attention_visualizer", "Attention Visualization")
     ]
     
     failed_imports = []
@@ -110,14 +110,14 @@ def test_imports():
             print(f"⚠️  {module_name} ({description}): {e}")
     
     if failed_imports:
-        print(f"\n⚠️  {len(failed_imports)} 个模块导入失败")
+        print(f"\n⚠️  {len(failed_imports)} modules failed to import")
         return False
     
     return True
 
 def test_model_availability():
-    """测试模型文件是否可用"""
-    print("\n🤖 测试模型可用性...")
+    """Test model file availability"""
+    print("\n🤖 Testing model availability...")
     
     model_paths = {
         "DiffLlama": "cache/models--reyllama--DiffLlama-375M",
@@ -129,48 +129,48 @@ def test_model_availability():
         if os.path.exists(model_path):
             print(f"✅ {model_name}: {model_path}")
             
-            # 检查模型内容
+            # Check model contents
             if os.path.isdir(model_path):
                 contents = os.listdir(model_path)
                 if contents:
-                    print(f"   📁 包含 {len(contents)} 个文件/目录")
+                    print(f"   📁 Contains {len(contents)} files/directories")
                 else:
-                    print(f"   ⚠️  目录为空")
+                    print(f"   ⚠️  Directory is empty")
         else:
             print(f"❌ {model_name}: {model_path}")
             missing_models.append(model_name)
     
     if missing_models:
-        print(f"\n⚠️  缺少 {len(missing_models)} 个模型")
-        print("运行以下命令下载模型:")
+        print(f"\n⚠️  Missing {len(missing_models)} models")
+        print("Run the following command to download models:")
         print("python scripts/download_models.py")
         return False
     
     return True
 
 def test_model_loading():
-    """测试模型加载功能"""
-    print("\n🚀 测试模型加载...")
+    """Test model loading functionality"""
+    print("\n🚀 Testing model loading...")
     
     try:
         from src.model_loader import load_model_and_tokenizer
         
-        # 测试加载 DiffLlama（使用较小的设置以节省内存）
-        print("  加载 DiffLlama...")
+        # Test loading DiffLlama (using smaller settings to save memory)
+        print("  Loading DiffLlama...")
         model, tokenizer = load_model_and_tokenizer("diffllama")
-        print("  ✅ DiffLlama 加载成功")
+        print("  ✅ DiffLlama loaded successfully")
         
-        # 清理内存
+        # Clean up memory
         del model, tokenizer
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         
-        # 测试加载 Llama
-        print("  加载 Llama...")
+        # Test loading Llama
+        print("  Loading Llama...")
         model, tokenizer = load_model_and_tokenizer("llama")
-        print("  ✅ Llama 加载成功")
+        print("  ✅ Llama loaded successfully")
         
-        # 清理内存
+        # Clean up memory
         del model, tokenizer
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -178,77 +178,77 @@ def test_model_loading():
         return True
         
     except Exception as e:
-        print(f"❌ 模型加载失败: {e}")
+        print(f"❌ Model loading failed: {e}")
         traceback.print_exc()
         return False
 
 def test_data_generation():
-    """测试数据生成功能"""
-    print("\n📊 测试数据生成...")
+    """Test data generation functionality"""
+    print("\n📊 Testing data generation...")
     
     try:
         from src.utils import download_gsm8k
         from src.noise_injection import inject_inf_noise
         
-        # 测试 GSM8K 下载（如果不存在）
+        # Test GSM8K download (if not exists)
         if not os.path.exists("data/gsm8k_test.jsonl"):
-            print("  下载 GSM8K 数据集...")
+            print("  Downloading GSM8K dataset...")
             download_gsm8k()
         
         if os.path.exists("data/gsm8k_test.jsonl"):
-            print("  ✅ GSM8K 数据集可用")
+            print("  ✅ GSM8K dataset available")
         else:
-            print("  ❌ GSM8K 数据集下载失败")
+            print("  ❌ GSM8K dataset download failed")
             return False
         
-        # 测试噪声注入（小样本）
-        print("  测试噪声注入...")
+        # Test noise injection (small sample)
+        print("  Testing noise injection...")
         test_question = "Lisa has 10 apples. She gives 3 to her friend. How many apples does she have left?"
         noisy_question = inject_inf_noise(test_question)
         
         if len(noisy_question) > len(test_question):
-            print("  ✅ 噪声注入功能正常")
+            print("  ✅ Noise injection working normally")
         else:
-            print("  ⚠️  噪声注入可能未生效")
+            print("  ⚠️  Noise injection may not be effective")
         
         return True
         
     except Exception as e:
-        print(f"❌ 数据生成测试失败: {e}")
+        print(f"❌ Data generation test failed: {e}")
         traceback.print_exc()
         return False
 
 def test_evaluation_pipeline():
-    """测试评估流程"""
-    print("\n🔍 测试评估流程...")
+    """Test evaluation pipeline"""
+    print("\n🔍 Testing evaluation pipeline...")
     
     try:
         from src.evaluation import extract_answer, evaluate_answer
         
-        # 测试答案提取
+        # Test answer extraction
         test_response = "Let me think step by step. Lisa has 10 apples and gives away 3, so 10 - 3 = 7. The answer is 7."
         extracted = extract_answer(test_response)
-        print(f"  答案提取测试: '{extracted}'")
+        print(f"  Answer extraction test: '{extracted}'")
         
-        # 测试答案评估
+        # Test answer evaluation
         correct = evaluate_answer(extracted, "7")
-        print(f"  答案评估测试: {correct}")
+        print(f"  Answer evaluation test: {correct}")
         
         if correct:
-            print("  ✅ 评估流程功能正常")
+            print("  ✅ Evaluation pipeline working normally")
         else:
-            print("  ⚠️  评估流程可能有问题")
+            print("  ⚠️  Evaluation pipeline may have issues")
         
         return True
         
     except Exception as e:
-        print(f"❌ 评估流程测试失败: {e}")
+        print(f"❌ Evaluation pipeline test failed: {e}")
         traceback.print_exc()
         return False
 
 def test_directory_structure():
-    """测试目录结构"""
-    print("\n📁 测试目录结构...")
+    """Test directory structure"""
+    print("\n📁 Testing directory structure...")
     
     required_dirs = ["src", "data", "results", "cache"]
     
@@ -256,25 +256,25 @@ def test_directory_structure():
         if os.path.exists(dir_name):
             print(f"✅ {dir_name}/")
         else:
-            print(f"⚠️  {dir_name}/ (将自动创建)")
+            print(f"⚠️  {dir_name}/ (will be created automatically)")
             os.makedirs(dir_name, exist_ok=True)
     
     return True
 
 def run_comprehensive_test():
-    """运行全面的环境测试"""
+    """Run comprehensive environment test"""
     print("="*80)
-    print("🧪 DiffLlama 实验环境测试")
+    print("🧪 DiffLlama Experiment Environment Test")
     print("="*80)
     
     tests = [
-        ("Python 环境", test_python_environment),
-        ("目录结构", test_directory_structure),
-        ("源代码文件", test_source_files),
-        ("模块导入", test_imports),
-        ("模型可用性", test_model_availability),
-        ("数据生成", test_data_generation),
-        ("评估流程", test_evaluation_pipeline)
+        ("Python Environment", test_python_environment),
+        ("Directory Structure", test_directory_structure),
+        ("Source Code Files", test_source_files),
+        ("Module Imports", test_imports),
+        ("Model Availability", test_model_availability),
+        ("Data Generation", test_data_generation),
+        ("Evaluation Pipeline", test_evaluation_pipeline)
     ]
     
     results = {}
@@ -282,36 +282,36 @@ def run_comprehensive_test():
         try:
             results[test_name] = test_func()
         except Exception as e:
-            print(f"❌ {test_name} 测试出现异常: {e}")
+            print(f"❌ {test_name} Test encountered exception: {e}")
             results[test_name] = False
     
-    # 总结
+    # Summary
     print("\n" + "="*80)
-    print("📋 测试结果总结")
+    print("📋 Test Result Summary")
     print("="*80)
     
     passed = sum(results.values())
     total = len(results)
     
     for test_name, passed_test in results.items():
-        status = "✅ 通过" if passed_test else "❌ 失败"
+        status = "✅ Passed" if passed_test else "❌ Failed"
         print(f"{test_name:20} {status}")
     
-    print(f"\n🎯 总体结果: {passed}/{total} 项测试通过")
+    print(f"\n🎯 Overall Result: {passed}/{total} Tests passed")
     
     if passed == total:
-        print("🎉 所有测试通过！环境配置正确，可以运行实验。")
+        print("🎉 All tests passed! Environment configuration correct, can run experiment.")
         return True
     else:
-        print("⚠️  部分测试失败，请检查上述错误信息并解决问题。")
+        print("⚠️  Some tests failed, please check the error messages above and resolve the issues.")
         return False
 
 def quick_test():
-    """快速测试核心功能"""
-    print("🚀 快速测试模式")
+    """Quick test core functionality"""
+    print("🚀 Quick Test Mode")
     print("-" * 40)
     
-    # 只测试最关键的功能
+    # Only test the most critical functionality
     critical_tests = [
         test_python_environment,
         test_source_files,
@@ -325,22 +325,22 @@ def quick_test():
             if not test_func():
                 all_passed = False
         except Exception as e:
-            print(f"❌ 测试失败: {e}")
+            print(f"❌ Test failed: {e}")
             all_passed = False
     
     if all_passed:
-        print("\n✅ 核心功能测试通过")
+        print("\n✅ Core functionality test passed")
     else:
-        print("\n❌ 核心功能测试失败")
+        print("\n❌ Core functionality test failed")
     
     return all_passed
 
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="DiffLlama 实验环境测试")
-    parser.add_argument("--quick", action="store_true", help="快速测试模式")
-    parser.add_argument("--models", action="store_true", help="仅测试模型")
+    parser = argparse.ArgumentParser(description="DiffLlama Experiment Environment Test")
+    parser.add_argument("--quick", action="store_true", help="Quick Test Mode")
+    parser.add_argument("--models", action="store_true", help="Only test models")
     
     args = parser.parse_args()
     

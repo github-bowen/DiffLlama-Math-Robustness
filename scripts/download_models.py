@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Model Download Script - 下载实验所需的模型
+Model Download Script - Download Required Models for Experiments
 
-此脚本负责从 Hugging Face Hub 下载 DiffLlama 和 Llama 模型。
-支持本地环境和 Google Colab 环境。
+This script is responsible for downloading DiffLlama and Llama models from Hugging Face Hub.
+Supports both local environment and Google Colab environment.
 """
 
 import os
 from huggingface_hub import snapshot_download
 
 def download_models():
-    """下载实验所需的模型"""
+    """Download models required for experiments"""
     
     # Download checkpoint-64434 for DiffLlama-375M modelAdd commentMore actions
     diffllama_path = snapshot_download(
