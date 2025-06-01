@@ -1,249 +1,308 @@
-# DiffLlama vs Llama: 数学推理中的噪声鲁棒性与注意力机制研究
+# 🔬 DiffLlama vs Llama 噪声鲁棒性实验
 
-本项目实现了对比 DiffLlama-375M 与 Llama-375M 在数学推理任务中噪声鲁棒性和注意力机制的全面实验框架。
+基于差分注意力机制的数学推理噪声鲁棒性研究项目，比较 DiffLlama-375M 与 Llama-375M 在带噪声数学问题上的性能表现。
 
-## 📋 实验概述
+## 📋 项目概述
 
-### 研究目标
-深入探究 DiffLlama-375M 在处理含噪数学问题时的表现及其注意力机制的独特性，作为对原论文的扩展研究。
+本项目实现了一个完整的实验框架，用于研究和比较不同注意力机制在数学推理任务中的噪声鲁棒性。通过系统化的实验设计，深入探索DiffLlama的差分注意力机制相比传统注意力机制的优势。
 
-### 核心研究问题
-1. **噪声鲁棒性**：DiffLlama 是否在含噪声的数学推理任务中表现更好？
-2. **注意力机制**：差分注意力是否能更有效地聚焦关键数学信息并抑制噪声？
-3. **微调效果**：监督微调后两个模型的性能差异如何变化？
+### 🎯 研究目标
+
+- **性能对比**: 评估 DiffLlama 与 Llama 在 clean 和 noisy 数学问题上的表现
+- **噪声鲁棒性**: 分析不同类型噪声对模型性能的影响
+- **注意力机制**: 可视化和量化模型的注意力分配模式
+- **深度分析**: 探索差分注意力机制的工作原理和优势
+
+## 🏗️ 项目结构
+
+```
+DiffLlama_Experiment/
+├── 🧠 src/                          # 核心源代码
+│   ├── utils.py                     # 数据下载和处理工具
+│   ├── model_loader.py              # 模型加载和配置
+│   ├── noise_injection.py           # 三种噪声注入策略
+│   ├── evaluation.py                # 评估和性能分析
+│   ├── fine_tuning.py               # 监督微调(可选)
+│   └── attention_visualizer.py      # 注意力可视化和分析
+├── 🔬 colab/                        # Google Colab 专用
+│   ├── experiment.py                # Colab 主实验脚本
+│   ├── config.py                    # Colab 环境配置
+│   ├── quick_run.py                 # 快速运行示例
+│   └── README.md                    # Colab 详细指南
+├── 🛠 scripts/                      # 辅助脚本
+│   ├── download_models.py           # 模型下载脚本
+│   └── test_setup.py                # 环境配置测试
+├── 📚 docs/                         # 文档资料
+│   ├── USAGE_GUIDE.md               # 详细使用指南
+│   └── PROJECT_SUMMARY.md          # 项目文件组织总结
+├── 🚀 main.py                       # 主实验脚本（本地）
+├── 📦 requirements.txt              # Python 依赖包
+├── 📊 data/                         # 数据集目录
+├── 📈 results/                      # 实验结果目录
+└── 💾 cache/                        # 模型缓存目录
+```
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Python 3.8+
+- PyTorch 1.12+
+- transformers 4.20+
+- CUDA 11.0+ (推荐，用于GPU加速)
+- 约15GB磁盘空间（模型缓存）
+
+### 安装和设置
+
+1. **克隆项目**
+   ```bash
+   git clone <repository-url>
+   cd DiffLlama_Experiment
+   ```
+
+2. **安装依赖**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **环境验证**
+   ```bash
+   python scripts/test_setup.py
+   ```
+
+4. **下载模型**
+   ```bash
+   python scripts/download_models.py
+   ```
+
+### 快速运行
+
+#### 本地环境
+```bash
+# 快速测试 (20个样本，30-60分钟)
+python main.py --quick-test
+
+# 完整实验 (全部数据，数小时)
+python main.py
+```
+
+#### Google Colab
+```bash
+# 上传项目文件到 Colab，然后运行：
+!python colab/experiment.py --mode quick --use-drive
+```
 
 ## 🔬 实验设计
 
 ### 噪声类型
-- **INF (Irrelevant Numbers/Facts)**: 不相关数字/事实
-- **RCS (Redundant Calculation Steps)**: 冗余计算步骤  
-- **SD (Semantic Distraction)**: 语义干扰信息
+
+#### 1. INF (Irrelevant Numbers/Facts)
+添加与问题无关的数字和事实信息
+```
+原始: "Tom has 5 apples. He gives 2 to his friend. How many apples does he have left?"
+噪声: "Tom has 5 apples and 3 oranges. He gives 2 apples to his friend who has 7 books. How many apples does Tom have left?"
+```
+
+#### 2. RCS (Redundant Calculation Steps)  
+添加冗余的计算步骤和无用信息
+```
+原始: "Calculate 8 + 7"
+噪声: "First, note that 8 = 4 + 4. Also, 7 = 3 + 4. Now calculate 8 + 7. Remember that 8 > 7."
+```
+
+#### 3. SD (Semantic Distraction)
+添加语义相关但逻辑无关的干扰信息
+```
+原始: "A pizza is cut into 8 slices. If 3 slices are eaten, how many remain?"
+噪声: "A delicious pizza with cheese and pepperoni is cut into 8 equal slices. The pizza smells great. If 3 slices are eaten quickly, how many slices remain on the plate?"
+```
 
 ### 评估指标
-- **Pass@1 准确率**：零样本和微调后的准确率
-- **注意力分配比例**：KMI、NI、OC token的注意力分配
-- **性能下降幅度**：从干净数据到含噪数据的性能变化
 
-## 🚀 快速开始
+- **Pass@1 准确率**: 模型第一次尝试的正确率
+- **注意力分配比例**: KMI/NI/OC token的注意力占比
+- **鲁棒性下降**: 从clean到noisy数据的性能变化
 
-### 环境配置
+## 📊 实验模式
+
+### 🏃 快速测试模式
+- **目的**: 验证环境和代码正确性
+- **样本数**: 20个/数据集
+- **时间**: 30-60分钟
+- **命令**: `python main.py --quick-test`
+
+### 📈 标准模式  
+- **目的**: 平衡的实验结果
+- **样本数**: 200个/数据集
+- **时间**: 2-4小时
+- **命令**: `python main.py`
+
+### 🔬 完整模式
+- **目的**: 完整研究数据
+- **样本数**: 全部数据(~1300个)
+- **时间**: 6-12小时  
+- **命令**: `python main.py --max-samples -1`
+
+## 🎛️ 高级配置
+
+### 自定义实验参数
+
 ```bash
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# 或者 venv\Scripts\activate  # Windows
+# 指定样本数量
+python main.py --max-samples 100
 
-# 安装依赖
-pip install -r requirements.txt
-```
+# 跳过耗时的微调步骤
+python main.py --skip-sft
 
-### 模型下载
-确保已下载模型（如果尚未下载）：
-```bash
-python pre_download_models.py
-```
+# 只测试特定模型
+python main.py --models diffllama
 
-### 运行实验
+# 只测试特定数据集
+python main.py --datasets clean,inf
 
-#### 快速测试（推荐首次运行）
-```bash
-python main.py --quick-test
-```
-
-#### 完整实验
-```bash
-python main.py
-```
-
-#### 自定义运行
-```bash
-# 跳过微调，只运行评估和注意力分析
-python main.py --skip-sft --max-samples 200
-
-# 跳过注意力分析，只运行评估
+# 跳过注意力分析以节省时间
 python main.py --skip-attention
-
-# 自定义微调参数
-python main.py --sft-samples 1000 --sft-epochs 3
 ```
 
-## 📁 项目结构
+### Google Colab 专用选项
 
+```bash
+# 不同实验模式
+!python colab/experiment.py --mode quick    # 快速(20样本)
+!python colab/experiment.py --mode medium  # 中等(100样本)  
+!python colab/experiment.py --mode full    # 完整(自定义)
+
+# Google Drive 集成
+!python colab/experiment.py --use-drive    # 持久化存储
+
+# 仅环境设置
+!python colab/experiment.py --setup
 ```
-project_root/
-├── cache/                          # Hugging Face 模型缓存
-│   ├── models--reyllama--DiffLlama-375M/
-│   └── models--reyllama--Llama_375M/
-├── data/                           # 数据集
-│   ├── gsm8k_train.jsonl          # GSM8K 训练集
-│   ├── gsm8k_test.jsonl           # GSM8K 测试集
-│   ├── gsm8k_inf_test.jsonl       # INF 噪声测试集
-│   ├── gsm8k_rcs_test.jsonl       # RCS 噪声测试集
-│   └── gsm8k_sd_test.jsonl        # SD 噪声测试集
-├── src/                            # 源代码
-│   ├── utils.py                   # 工具函数
-│   ├── model_loader.py            # 模型加载
-│   ├── noise_injection.py         # 噪声注入
-│   ├── evaluation.py              # 模型评估
-│   ├── fine_tuning.py             # 监督微调
-│   └── attention_visualizer.py    # 注意力可视化
-├── results/                        # 实验结果
-│   ├── zero_shot_performance.csv  # 零样本性能
-│   ├── sft_performance.csv        # 微调后性能
-│   ├── attention_analysis.json    # 注意力分析
-│   └── attention_maps/            # 注意力热力图
-├── models_finetuned/              # 微调后的模型
-├── main.py                        # 主执行脚本
-├── requirements.txt               # 依赖列表
-└── README.md                      # 项目说明
-```
-
-## 📊 实验步骤
-
-### 1. 数据准备
-- 自动下载 GSM8K 数据集
-- 生成三种类型的噪声数据集
-- 数据格式验证和预处理
-
-### 2. 零样本评估
-- 在干净和含噪数据集上评估两个模型
-- 使用思维链 (Chain-of-Thought) 提示
-- 计算 Pass@1 准确率
-
-### 3. 监督微调（可选）
-- 在 GSM8K 训练子集上微调两个模型
-- 使用指令遵循格式训练
-- 支持自定义训练参数
-
-### 4. 微调后评估
-- 评估微调后模型在所有数据集上的性能
-- 对比微调前后的性能变化
-
-### 5. 注意力分析
-- **可视化**：生成注意力热力图
-- **量化**：计算 KMI、NI、OC 的注意力分配比例
-- **对比**：分析两个模型的注意力模式差异
 
 ## 📈 结果分析
 
-### 性能指标
-- **准确率对比**：各数据集上的模型性能
-- **鲁棒性评估**：性能下降幅度分析
-- **相对提升**：DiffLlama 相对于 Llama 的改进
+### 输出文件
 
-### 注意力分析
-- **注意力分配**：不同类型 token 的注意力权重
-- **噪声抑制**：模型对噪声信息的注意力分配
-- **关键信息聚焦**：对数学关键信息的注意力集中度
-
-## 🔧 高级用法
-
-### 单独运行模块
-
-#### 数据准备
-```bash
-python -c "from src.utils import download_gsm8k; download_gsm8k()"
-python src/noise_injection.py
+```
+results/
+├── experiment_results_[timestamp].csv      # 主要性能数据
+├── detailed_results_[timestamp].json       # 详细结果
+├── attention_analysis_[timestamp].json     # 注意力分析
+├── model_comparison.png                    # 性能对比图表
+└── attention_maps/                         # 注意力热力图
+    ├── clean_samples/
+    ├── inf_samples/  
+    ├── rcs_samples/
+    └── sd_samples/
 ```
 
-#### 模型评估
-```bash
-python src/evaluation.py
+### 预期结果示例
+
+#### 性能对比
+```
+           Clean    INF      RCS      SD       Average
+llama      0.145    0.098    0.110    0.105    0.115
+diffllama  0.162    0.123    0.135    0.128    0.137
+improvement +0.017   +0.025   +0.025   +0.023   +0.022
 ```
 
-#### 注意力可视化
-```bash
-python src/attention_visualizer.py
+#### 注意力分析
+```json
+{
+  "attention_summary": {
+    "llama": {
+      "clean": {"kmi_ratio": 0.45, "noise_ratio": 0.0},
+      "noisy": {"kmi_ratio": 0.32, "noise_ratio": 0.18}
+    },
+    "diffllama": {
+      "clean": {"kmi_ratio": 0.50, "noise_ratio": 0.0}, 
+      "noisy": {"kmi_ratio": 0.43, "noise_ratio": 0.12}
+    }
+  }
+}
 ```
 
-#### 监督微调
-```bash
-python src/fine_tuning.py --model diffllama --samples 500 --epochs 2
-```
+## 🛠 开发和扩展
 
-### 自定义实验
+### 添加新的噪声类型
 
-#### 修改噪声策略
-在 `src/noise_injection.py` 中自定义噪声注入函数：
-```python
-def inject_custom_noise(question):
-    # 实现自定义噪声注入逻辑
-    return noisy_question
-```
+1. 在 `src/noise_injection.py` 中实现噪声函数
+2. 在数据生成流程中集成新函数
+3. 更新评估流程以支持新数据集
 
-#### 调整评估参数
-在 `src/evaluation.py` 中修改生成参数：
-```python
-max_new_tokens=512,  # 最大生成长度
-temperature=0.7,     # 生成温度
-```
+### 添加新的模型
 
-## 📋 实验检查清单
+1. 在 `src/model_loader.py` 中添加加载逻辑
+2. 配置模型路径和参数
+3. 更新评估流程
 
-- [ ] 环境配置完成
-- [ ] 模型下载成功
-- [ ] GSM8K 数据集准备就绪
-- [ ] 噪声数据集生成完成
-- [ ] 零样本评估运行成功
-- [ ] 注意力可视化生成
-- [ ] 结果文件产生并可分析
+### 自定义评估指标
 
-## ⚠️ 注意事项
+1. 在 `src/evaluation.py` 中实现新指标
+2. 修改结果聚合和可视化逻辑
+3. 更新结果输出格式
 
-### 计算资源
-- **GPU 内存**：推荐至少 8GB VRAM
-- **存储空间**：至少 10GB 可用空间
-- **运行时间**：完整实验可能需要数小时
+## 📚 文档资源
 
-### 模型兼容性
-- 项目基于 Hugging Face Transformers
-- DiffLlama 的差分注意力提取可能需要特殊处理
-- 注意力可视化依赖模型的 `output_attentions` 参数
+- **[详细使用指南](docs/USAGE_GUIDE.md)**: 完整的使用说明和高级配置
+- **[Colab 使用指南](colab/README.md)**: Google Colab 专用说明
+- **[项目文件组织](docs/PROJECT_SUMMARY.md)**: 文件结构和组织说明
+- **命令行帮助**: `python main.py --help`
 
-### 结果可重现性
-- 使用固定随机种子
-- 贪婪解码确保一致性
-- 详细记录实验参数
-
-## 🔍 故障排除
+## 🔧 故障排除
 
 ### 常见问题
 
-**Q: 模型加载失败**
-A: 检查模型路径和网络连接，确保模型已正确下载
-
-**Q: CUDA 内存不足**
-A: 减少批处理大小或使用 `--max-samples` 限制样本数量
-
-**Q: 注意力提取失败**
-A: 确保模型支持 `output_attentions=True` 参数
-
-**Q: 数据集下载慢**
-A: 配置 Hugging Face 缓存目录或使用镜像源
-
-### 调试模式
+#### GPU 内存不足
 ```bash
-# 使用最小样本快速测试
-python main.py --quick-test
-
-# 跳过耗时步骤
-python main.py --skip-sft --skip-attention
+# 使用更小的批量大小和样本数
+python main.py --quick-test --max-samples 10
 ```
 
-## 📚 参考文献
+#### 模型下载失败  
+```bash
+# 检查网络连接，手动重试
+python scripts/download_models.py
+```
 
-1. DiffLlama 原论文及其注意力机制实现
-2. GSM8K 数学推理数据集
-3. Transformer 注意力机制相关研究
+#### 导入错误
+```bash
+# 验证环境配置
+python scripts/test_setup.py --quick
+```
 
-## 🤝 贡献
+### 性能优化
 
-欢迎提交 Issue 和 Pull Request 来改进项目！
+- **GPU**: 使用CUDA加速，推荐12GB+显存
+- **内存**: 推荐16GB+系统内存 
+- **存储**: 至少15GB可用空间用于模型缓存
+- **网络**: 首次运行需要下载模型和数据
+
+## 🎓 学术使用
+
+### 引用信息
+如果您在研究中使用此框架，请考虑引用相关的DiffLlama论文和GSM8K数据集。
+
+### 实验复现
+- 设置随机种子确保可复现性
+- 记录硬件配置和模型版本
+- 保存完整的实验配置和结果
 
 ## 📄 许可证
 
-本项目遵循 MIT 许可证。
+本项目采用 MIT 许可证。详见 LICENSE 文件。
+
+## 🤝 贡献
+
+欢迎贡献代码、报告问题或建议改进。请通过 GitHub Issues 或 Pull Requests 参与项目。
 
 ---
 
-**注**：这是一个研究性项目，用于探索差分注意力机制在数学推理任务中的效果。实际结果可能因模型版本、硬件配置等因素而有所不同。 
+**🚀 开始您的噪声鲁棒性研究之旅！** 
+
+选择适合您的使用模式：
+- 🏃 **快速体验**: `python main.py --quick-test`  
+- 🔬 **完整研究**: `python main.py`
+- 📱 **云端实验**: 使用 Google Colab
+
+**需要帮助？** 查看 [使用指南](docs/USAGE_GUIDE.md) 或运行 `python scripts/test_setup.py` 检查环境配置。 
