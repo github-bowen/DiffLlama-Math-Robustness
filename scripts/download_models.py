@@ -12,31 +12,24 @@ from huggingface_hub import snapshot_download
 def download_models():
     """下载实验所需的模型"""
     
-    # 确保缓存目录存在
-    cache_dir = "cache"
-    os.makedirs(cache_dir, exist_ok=True)
-    
-    models = {
-        "DiffLlama-375M": "reyllama/DiffLlama-375M",
-        "Llama_375M": "reyllama/Llama_375M"
-    }
-    
-    print("🔄 开始下载模型...")
-    
-    for model_name, model_id in models.items():
-        print(f"\n📥 下载 {model_name}...")
-        try:
-            snapshot_download(
-                repo_id=model_id,
-                cache_dir=cache_dir,
-                resume_download=True
-            )
-            print(f"✅ {model_name} 下载完成")
-        except Exception as e:
-            print(f"❌ {model_name} 下载失败: {e}")
-            return False
-    
-    print("\n🎉 所有模型下载完成！")
+    # Download checkpoint-64434 for DiffLlama-375M modelAdd commentMore actions
+    diffllama_path = snapshot_download(
+        repo_id="reyllama/DiffLlama-375M",
+        cache_dir="./cache",
+        allow_patterns=["checkpoint-64434/*"],
+        force_download=False
+    )
+
+    # Download checkpoint-64434 for Llama_375M model
+    llama_path = snapshot_download(
+        repo_id="reyllama/Llama_375M",
+        cache_dir="./cache",
+        allow_patterns=["checkpoint-64434/*"],
+        force_download=False
+    )
+
+    print(f"DiffLlama-375M checkpoint-64434 downloaded to: {diffllama_path}")
+    print(f"Llama_375M checkpoint-64434 downloaded to: {llama_path}")
     return True
 
 if __name__ == "__main__":
