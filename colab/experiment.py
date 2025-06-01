@@ -47,45 +47,22 @@ def mount_google_drive():
         return False
 
 def setup_colab_environment(use_drive=True):
-    """Setup the environment for Colab execution."""
-    print("🔧 Setting up Colab environment...")
-    
-    # Check if we're in Colab
-    in_colab = 'google.colab' in sys.modules
-    if not in_colab:
-        print("⚠️  Warning: Not detected as Colab environment")
-    
-    # Mount Google Drive if requested
-    drive_mounted = False
-    if use_drive and in_colab:
-        drive_mounted = mount_google_drive()
-    
     # Setup directories
-    if drive_mounted:
-        # Use Google Drive for persistent storage
-        base_dir = "/content/drive/MyDrive/DiffLlama_Experiment"
-        models_dir = f"{base_dir}/models"
-        data_dir = f"{base_dir}/data"
-        results_dir = f"{base_dir}/results"
-        
-        # Create symlinks to local workspace
-        local_dirs = {
-            "cache": models_dir,
-            "data": data_dir, 
-            "results": results_dir
-        }
-        
-        print(f"📁 Using Google Drive storage: {base_dir}")
-        
-    else:
-        # Use local storage (will be lost on runtime restart)
-        local_dirs = {
-            "cache": "/content/cache",
-            "data": "/content/data",
-            "results": "/content/results"
-        }
-        print("📁 Using local storage (temporary)")
+    # Use Google Drive for persistent storage
+    base_dir = "/content/drive/MyDrive/DiffLlama_Experiment"
+    models_dir = f"{base_dir}/models"
+    data_dir = f"{base_dir}/data"
+    results_dir = f"{base_dir}/results"
     
+    # Create symlinks to local workspace
+    local_dirs = {
+        "cache": models_dir,
+        "data": data_dir, 
+        "results": results_dir
+    }
+    
+    print(f"📁 Using Google Drive storage: {base_dir}")
+        
     # Create directories and symlinks
     for local_name, target_dir in local_dirs.items():
         os.makedirs(target_dir, exist_ok=True)
@@ -105,24 +82,13 @@ def setup_colab_environment(use_drive=True):
     os.makedirs("src", exist_ok=True)
     os.makedirs("models_finetuned", exist_ok=True)
     
-    return drive_mounted
+    return True
 
 def install_dependencies():
     """Install required dependencies in Colab."""
     print("📦 Installing dependencies...")
     
-    # Install packages that might not be in Colab by default
-    packages = [
-        "transformers>=4.20.0",
-        "datasets>=2.0.0", 
-        "accelerate>=0.20.0",
-        "evaluate>=0.4.0",
-        "seaborn>=0.11.0"
-    ]
-    
-    for package in packages:
-        print(f"  Installing {package}...")
-        os.system(f"pip install -q {package}")
+    os.system("pip install -r requirements.txt")
     
     print("✅ Dependencies installed")
 
@@ -408,18 +374,17 @@ def main():
         display_colab_instructions()
         return 0
     
+    if args.setup:
+        # Environment setup
+        install_dependencies()
+        drive_mounted = setup_colab_environment(args.use_drive)
+        print("✅ Setup completed")
+        return 0
+    
     print("="*80)
     print("🔬 DIFFLAMA VS LLAMA - GOOGLE COLAB EXPERIMENT")
     print("="*80)
     print(f"🕐 Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # Environment setup
-    install_dependencies()
-    drive_mounted = setup_colab_environment(args.use_drive)
-    
-    if args.setup:
-        print("✅ Setup completed")
-        return 0
     
     # Check source files
     if not copy_source_files():
