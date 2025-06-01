@@ -260,14 +260,14 @@ results = compare_attention_patterns(
 ```python
 # src/noise_injection.py
 def inject_custom_noise(question):
-    """自定义噪声注入函数"""
-    # 实现您的噪声注入逻辑
+    """Custom noise injection function"""
+    # Implement your noise injection logic
     return modified_question
 
-# 在生成脚本中使用
+# In generation script
 def generate_custom_noisy_dataset():
-    """生成自定义噪声数据集"""
-    # 使用您的噪声函数生成数据集
+    """Generate custom noisy dataset"""
+    # Use your noise function to generate dataset
     pass
 ```
 

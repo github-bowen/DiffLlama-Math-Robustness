@@ -1,244 +1,244 @@
-# 📱 项目文件组织总结
+# 📱 Project File Organization Summary
 
-本项目现在已经重新组织了文件结构，将不同类型的文件分门别类放置，便于管理和使用。
+The project has now reorganized its file structure, categorizing different types of files for easier management and use.
 
-## 📂 新的项目结构
+## 📂 New Project Structure
 
 ```
 DiffLlama_Experiment/
-├── src/                          # 🧠 核心源代码
-│   ├── utils.py                  # 工具函数
-│   ├── model_loader.py           # 模型加载
-│   ├── noise_injection.py        # 噪声注入
-│   ├── evaluation.py             # 评估模块
-│   ├── fine_tuning.py            # 微调模块
-│   └── attention_visualizer.py   # 注意力可视化
-├── colab/                        # 🔬 Google Colab 专用
-│   ├── experiment.py             # Colab 主实验脚本
-│   ├── config.py                 # Colab 配置
-│   ├── quick_run.py              # 快速运行示例
-│   └── README.md                 # Colab 使用指南
-├── scripts/                      # 🛠 辅助脚本
-│   ├── download_models.py        # 模型下载
-│   └── test_setup.py             # 环境测试
-├── docs/                         # 📚 文档资料
-│   ├── USAGE_GUIDE.md            # 详细使用指南
-│   └── PROJECT_SUMMARY.md        # 本文档
-├── main.py                       # 🚀 主实验脚本（本地）
-├── README.md                     # 📖 项目主文档
-├── requirements.txt              # 📦 依赖列表
-├── data/                         # 📊 数据目录
-├── results/                      # 📈 结果目录
-├── cache/                        # 💾 模型缓存
-└── [其他辅助文件...]
+├── src/                          # 🧠 Core source code
+│   ├── utils.py                  # Utility functions
+│   ├── model_loader.py           # Model loading
+│   ├── noise_injection.py        # Noise injection
+│   ├── evaluation.py             # Evaluation module
+│   ├── fine_tuning.py            # Fine-tuning module
+│   └── attention_visualizer.py   # Attention visualization
+├── colab/                        # 🔬 Google Colab specific
+│   ├── experiment.py             # Colab main experiment script
+│   ├── config.py                 # Colab configuration
+│   ├── quick_run.py              # Quick run example
+│   └── README.md                 # Colab usage guide
+├── scripts/                      # 🛠 Helper scripts
+│   ├── download_models.py        # Model download
+│   └── test_setup.py             # Environment test
+├── docs/                         # 📚 Documentation
+│   ├── USAGE_GUIDE.md            # Detailed usage guide
+│   └── PROJECT_SUMMARY.md        # This document
+├── main.py                       # 🚀 Main experiment script (local)
+├── README.md                     # 📖 Project main document
+├── requirements.txt              # 📦 Dependencies list
+├── data/                         # 📊 Data directory
+├── results/                      # 📈 Results directory
+├── cache/                        # 💾 Model cache
+└── [Other auxiliary files...]
 ```
 
-## 🎯 使用场景对应
+## 🎯 Usage Scenario Correspondence
 
-### 场景 1: 本地开发和研究
-**主要文件:**
-- `main.py` - 主实验脚本
-- `src/` - 所有核心模块
-- `scripts/test_setup.py` - 环境验证
-- `docs/USAGE_GUIDE.md` - 详细指南
+### Scenario 1: Local Development and Research
+**Main Files:**
+- `main.py` - Main experiment script
+- `src/` - All core modules
+- `scripts/test_setup.py` - Environment verification
+- `docs/USAGE_GUIDE.md` - Detailed guide
 
-**快速开始:**
+**Quick Start:**
 ```bash
-python scripts/test_setup.py        # 检查环境
-python scripts/download_models.py   # 下载模型
-python main.py --quick-test         # 运行实验
+python scripts/test_setup.py        # Check environment
+python scripts/download_models.py   # Download model
+python main.py --quick-test         # Run experiment
 ```
 
-### 场景 2: Google Colab 使用
-**主要文件:**
-- `colab/experiment.py` - Colab 主脚本
-- `colab/config.py` - Colab 配置
-- `colab/README.md` - Colab 指南
-- `src/` - 核心模块（需要上传）
+### Scenario 2: Google Colab Usage
+**Main Files:**
+- `colab/experiment.py` - Colab main script
+- `colab/config.py` - Colab configuration
+- `colab/README.md` - Colab guide
+- `src/` - Core module (needs to be uploaded)
 
-**快速开始:**
+**Quick Start:**
 ```bash
 !python colab/experiment.py --mode quick --use-drive
 ```
 
-### 场景 3: 教学和演示
-**主要文件:**
-- `colab/quick_run.py` - 快速演示脚本
-- `docs/USAGE_GUIDE.md` - 教学材料
-- 预制的 Notebook 文件
+### Scenario 3: Teaching and Demonstration
+**Main Files:**
+- `colab/quick_run.py` - Quick demonstration script
+- `docs/USAGE_GUIDE.md` - Teaching material
+- Pre-made Notebook files
 
-**快速开始:**
+**Quick Start:**
 ```python
 from colab.quick_run import run_complete_experiment
 run_complete_experiment()
 ```
 
-## 🔄 文件路径更新
+## 🔄 File Path Update
 
-### 主要变更
+### Main Changes
 
-#### 1. Colab 相关文件移动
+#### 1. Colab Related Files Move
 - `colab_experiment.py` → `colab/experiment.py`
 - `colab_config.py` → `colab/config.py`
 - `quick_colab_run.py` → `colab/quick_run.py`
 - `COLAB_README.md` → `colab/README.md`
 
-#### 2. 脚本文件移动
+#### 2. Script Files Move
 - `pre_download_models.py` → `scripts/download_models.py`
 - `test_setup.py` → `scripts/test_setup.py`
 
-#### 3. 文档文件移动
+#### 3. Documentation Files Move
 - `USAGE_GUIDE.md` → `docs/USAGE_GUIDE.md`
 
-### 代码中的路径更新
+### Code Path Update
 
-#### 导入路径更新
+#### Import Path Update
 ```python
-# 旧路径
+# Old path
 from pre_download_models import download_models
 
-# 新路径
+# New path
 sys.path.append('scripts')
 from download_models import download_models
 ```
 
-#### 相对路径调整
+#### Relative Path Adjust
 ```python
-# 在 colab/ 目录下的脚本中
+# In colab/ directory scripts
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ```
 
-## 📋 使用指南快速索引
+## 📋 Usage Guide Quick Index
 
-### 🏃 快速测试（推荐新用户）
+### 🏃 Quick Test (Recommended for New Users)
 ```bash
-# 本地环境
+# Local environment
 python main.py --quick-test
 
-# Colab 环境  
+# Colab environment  
 !python colab/experiment.py --mode quick --use-drive
 ```
 
-### 🔧 环境配置
+### 🔧 Environment Configuration
 ```bash
-# 检查环境
+# Check environment
 python scripts/test_setup.py
 
-# 下载模型
+# Download model
 python scripts/download_models.py
 ```
 
-### 📊 完整实验
+### 📊 Complete Experiment
 ```bash
-# 本地完整实验
+# Local complete experiment
 python main.py
 
-# Colab 完整实验
+# Colab complete experiment
 !python colab/experiment.py --mode full --use-drive
 ```
 
-### 🧪 自定义实验
+### 🧪 Custom Experiment
 ```bash
-# 指定样本数
+# Specify sample count
 python main.py --max-samples 100
 
-# 跳过特定步骤
+# Skip specific steps
 python main.py --skip-sft --skip-attention
 
-# 只测试特定模型/数据集
+# Test specific model/dataset
 python main.py --models diffllama --datasets clean,inf
 ```
 
-## 🎓 不同用户的建议使用方式
+## 🎓 Different User Suggested Usage
 
-### 研究人员
-1. 使用本地环境进行完整实验
-2. 参考 `docs/USAGE_GUIDE.md` 进行深度定制
-3. 使用 `main.py` 的完整功能
+### Researchers
+1. Use local environment for complete experiment
+2. Refer to `docs/USAGE_GUIDE.md` for deep customization
+3. Use full functionality of `main.py`
 
-### 学生和教学
-1. 使用 Google Colab 进行快速体验
-2. 从 `colab/quick_run.py` 开始学习
-3. 逐步理解各个模块的功能
+### Students and Teaching
+1. Use Google Colab for quick experience
+2. Start from `colab/quick_run.py`
+3. Gradually understand the functionality of each module
 
-### 开发者
-1. 查看 `src/` 目录了解核心实现
-2. 使用 `scripts/test_setup.py` 验证环境
-3. 扩展功能时参考现有模块结构
+### Developers
+1. Check `src/` directory to understand core implementation
+2. Use `scripts/test_setup.py` to verify environment
+3. Refer to existing module structure when extending functionality
 
-### 演示和展示
-1. 使用 Colab Notebook 进行交互式演示
-2. 使用 `--quick-test` 模式进行快速展示
-3. 展示注意力可视化结果
+### Demonstration and Presentation
+1. Use Colab Notebook for interactive demonstration
+2. Use `--quick-test` mode for quick presentation
+3. Present attention visualization results
 
-## 🚀 升级和迁移
+## 🚀 Upgrade and Migration
 
-### 从旧版本迁移
-如果您之前使用了旧的文件结构：
+### From Old Version Migration
+If you previously used the old file structure:
 
-1. **更新导入路径**:
+1. **Update Import Path**:
    ```python
-   # 旧
+   # Old
    from colab_experiment import ...
-   # 新  
+   # New  
    from colab.experiment import ...
    ```
 
-2. **更新命令行调用**:
+2. **Update Command Line Call**:
    ```bash
-   # 旧
+   # Old
    python colab_experiment.py
-   # 新
+   # New
    python colab/experiment.py
    ```
 
-3. **更新文档引用**:
+3. **Update Documentation Reference**:
    - `COLAB_README.md` → `colab/README.md`
    - `USAGE_GUIDE.md` → `docs/USAGE_GUIDE.md`
 
-### 兼容性说明
-- 所有核心功能保持不变
-- API 接口完全兼容
-- 只需要更新文件路径引用
+### Compatibility Statement
+- All core functionality remains unchanged
+- API interface remains fully compatible
+- Only need to update file path reference
 
-## 💡 最佳实践建议
+## 💡 Best Practice Suggestions
 
-### 文件管理
-1. **保持目录结构**: 不要移动 `src/` 中的文件
-2. **使用相对路径**: 在脚本中使用相对路径引用
-3. **模块化开发**: 新功能添加到对应的目录中
+### File Management
+1. **Maintain Directory Structure**: Do not move files in `src/`
+2. **Use Relative Paths**: Use relative paths in scripts
+3. **Modular Development**: Add new functionality to corresponding directory
 
-### 开发流程
-1. **环境测试**: 总是先运行 `scripts/test_setup.py`
-2. **增量开发**: 使用 `--quick-test` 进行快速验证
-3. **结果管理**: 定期清理 `results/` 目录中的旧文件
+### Development Process
+1. **Environment Test**: Always run `scripts/test_setup.py` first
+2. **Incremental Development**: Use `--quick-test` for quick verification
+3. **Result Management**: Regularly clean `results/` directory of old files
 
-### 文档维护
-1. **更新文档**: 修改功能时同步更新相关文档
-2. **示例代码**: 在文档中提供可运行的示例
-3. **版本记录**: 重要变更记录在相关文档中
+### Documentation Maintenance
+1. **Update Documentation**: Sync documentation updates with feature changes
+2. **Example Code**: Provide runnable examples in documentation
+3. **Version Record**: Important changes recorded in related documentation
 
-## 📞 获取帮助
+## 📞 Get Help
 
-### 文档资源
-- **项目概览**: `README.md`
-- **详细使用**: `docs/USAGE_GUIDE.md`
-- **Colab 指南**: `colab/README.md`
-- **本文档**: `docs/PROJECT_SUMMARY.md`
+### Documentation Resources
+- **Project Overview**: `README.md`
+- **Detailed Usage**: `docs/USAGE_GUIDE.md`
+- **Colab Guide**: `colab/README.md`
+- **This Document**: `docs/PROJECT_SUMMARY.md`
 
-### 命令行帮助
+### Command Line Help
 ```bash
-python main.py --help                    # 主脚本帮助
-python colab/experiment.py --help        # Colab 脚本帮助
-python scripts/test_setup.py --help      # 测试脚本帮助
+python main.py --help                    # Main script help
+python colab/experiment.py --help        # Colab script help
+python scripts/test_setup.py --help      # Test script help
 ```
 
-### 快速诊断
+### Quick Diagnosis
 ```bash
-python scripts/test_setup.py --quick     # 快速环境检查
-python colab/config.py                   # Colab 环境信息
+python scripts/test_setup.py --quick     # Quick environment check
+python colab/config.py                   # Colab environment information
 ```
 
 ---
 
-**🎉 重新组织完成！** 新的文件结构更加清晰和易于维护，希望能为您的研究和学习提供更好的体验。 
+**🎉 Reorganization Completed!** New file structure is more clear and easier to maintain. Hope it provides a better experience for your research and learning. 

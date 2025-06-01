@@ -33,8 +33,8 @@ def extract_answer_from_solution(solution_str):
         r"The final answer is (\d+)", 
         r"#### (\d+)",
         r"\*\*(\d+)\*\*",
-        r"答案是(\d+)",
-        r"答案为(\d+)"
+        r"The answer: (\d+)",
+        r"Answer: (\d+)"
     ]
     
     for pattern in patterns:
