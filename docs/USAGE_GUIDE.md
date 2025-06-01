@@ -1,141 +1,155 @@
-# 📖 DiffLlama vs Llama 实验使用指南
+# DiffLlama vs Llama Experiment Usage Guide
 
-本指南详细说明了如何使用 DiffLlama vs Llama 噪声鲁棒性实验框架，包括设置、运行和分析结果的完整流程。
+This guide provides detailed instructions on how to use the DiffLlama vs Llama noise robustness experiment framework, including the complete workflow for setup, execution, and result analysis.
 
-## 🎯 快速开始
+## 🎯 Quick Start
 
-### 1. 环境检查
-首先验证环境是否正确配置：
+### 1. Environment Check
+
+First, verify that the environment is properly configured:
 
 ```bash
-# 运行环境测试
+# Run environment test
 python scripts/test_setup.py
 
-# 快速测试模式
+# Quick test mode
 python scripts/test_setup.py --quick
 ```
 
-### 2. 下载模型（如果需要）
+### 2. Download Models (if needed)
+
 ```bash
-# 下载实验所需的模型
+# Download models required for experiments
 python scripts/download_models.py
 ```
 
-### 3. 运行快速实验
+### 3. Run Quick Experiment
+
 ```bash
-# 运行包含20个样本的快速测试
+# Run quick test with 20 samples
 python main.py --quick-test
 ```
 
-## 🔧 详细使用说明
+## 🔧 Detailed Usage Instructions
 
-### 命令行参数
+### Command Line Arguments
 
-#### 主实验脚本 (`main.py`)
+#### Main Experiment Script (`main.py`)
 
 ```bash
 python main.py [OPTIONS]
 ```
 
-**主要选项:**
-- `--quick-test`: 运行快速测试（20个样本）
-- `--max-samples N`: 限制每个数据集的最大样本数
-- `--skip-data-gen`: 跳过数据生成（使用现有数据）
-- `--skip-evaluation`: 跳过零样本评估
-- `--skip-sft`: 跳过监督微调
-- `--skip-attention`: 跳过注意力分析
-- `--models MODEL1,MODEL2`: 指定要测试的模型（默认: diffllama,llama）
-- `--datasets DATASET1,DATASET2`: 指定要测试的数据集（默认: clean,inf,rcs,sd）
+**Main Options:**
 
-**示例用法:**
+- `--quick-test`: Run quick test (20 samples)
+- `--max-samples N`: Limit maximum number of samples per dataset
+- `--skip-data-gen`: Skip data generation (use existing data)
+- `--skip-evaluation`: Skip zero-shot evaluation
+- `--skip-sft`: Skip supervised fine-tuning
+- `--skip-attention`: Skip attention analysis
+- `--models MODEL1,MODEL2`: Specify models to test (default: diffllama,llama)
+- `--datasets DATASET1,DATASET2`: Specify datasets to test (default: clean,inf,rcs,sd)
+
+**Example Usage:**
+
 ```bash
-# 完整实验
+# Full experiment
 python main.py
 
-# 自定义样本数量
+# Custom sample count
 python main.py --max-samples 100
 
-# 跳过耗时的微调步骤
+# Skip time-consuming fine-tuning step
 python main.py --skip-sft
 
-# 只测试特定数据集
+# Test specific datasets only
 python main.py --datasets clean,inf
 
-# 只测试特定模型
+# Test specific models only
 python main.py --models diffllama
 ```
 
-#### Colab 实验脚本 (`colab/experiment.py`)
+#### Colab Experiment Script (`colab/experiment.py`)
 
 ```bash
 python colab/experiment.py [OPTIONS]
 ```
 
-**Colab 特定选项:**
-- `--mode {quick,medium,full}`: 实验模式
-- `--use-drive`: 使用 Google Drive 持久存储
-- `--setup`: 仅执行环境设置
-- `--instructions`: 显示使用说明
+**Colab-Specific Options:**
 
-**示例用法:**
+- `--mode {quick,medium,full}`: Experiment mode
+- `--use-drive`: Use Google Drive for persistent storage
+- `--setup`: Only perform environment setup
+- `--instructions`: Show usage instructions
+
+**Example Usage:**
+
 ```bash
-# Colab 快速测试
+# Colab quick test
 python colab/experiment.py --mode quick --use-drive
 
-# Colab 完整实验
+# Colab full experiment
 python colab/experiment.py --mode full --use-drive --max-samples 500
 ```
 
-### 实验模式
+### Experiment Modes
 
-#### 1. 快速测试模式
-- **用途**: 验证环境配置和代码正确性
-- **样本数**: 20个/数据集
-- **运行时间**: 30-60分钟
-- **命令**: `python main.py --quick-test`
+#### 1. Quick Test Mode
 
-#### 2. 标准模式
-- **用途**: 平衡的实验结果
-- **样本数**: 200个/数据集（可自定义）
-- **运行时间**: 2-4小时
-- **命令**: `python main.py`
+- **Purpose**: Verify environment configuration and code correctness
+- **Sample Count**: 20 per dataset
+- **Runtime**: 30-60 minutes
+- **Command**: `python main.py --quick-test`
 
-#### 3. 完整模式
-- **用途**: 完整的研究结果
-- **样本数**: 全部数据（~1300个）
-- **运行时间**: 6-12小时
-- **命令**: `python main.py --max-samples -1`
+#### 2. Standard Mode
 
-## 📊 数据集说明
+- **Purpose**: Balanced experimental results
+- **Sample Count**: 200 per dataset (customizable)
+- **Runtime**: 2-4 hours
+- **Command**: `python main.py`
 
-### 原始数据集
-- **Clean**: GSM8K 原始测试集
-- **大小**: 1,319个数学问题
+#### 3. Full Mode
 
-### 噪声数据集
-- **INF** (Irrelevant Numbers/Facts): 添加无关数字和事实
-- **RCS** (Redundant Calculation Steps): 添加冗余计算步骤  
-- **SD** (Semantic Distraction): 添加语义干扰信息
+- **Purpose**: Complete research results
+- **Sample Count**: All data (~1300 samples)
+- **Runtime**: 6-12 hours
+- **Command**: `python main.py --max-samples -1`
 
-每个噪声数据集都基于原始 Clean 数据集生成。
+## 📊 Dataset Description
 
-## 🤖 模型说明
+### Original Dataset
+
+- **Clean**: GSM8K original test set
+- **Size**: 1,319 math problems
+
+### Noisy Datasets
+
+- **INF** (Irrelevant Numbers/Facts): Add irrelevant numbers and facts
+- **RCS** (Redundant Calculation Steps): Add redundant calculation steps
+- **SD** (Semantic Distraction): Add semantic distraction information
+
+Each noisy dataset is generated based on the original Clean dataset.
+
+## 🤖 Model Description
 
 ### DiffLlama-375M
-- **类型**: 基于差分注意力机制的 Llama 变体
-- **参数量**: 375M
-- **特点**: 具有专门的差分注意力机制
 
-### Llama-375M  
-- **类型**: 标准 Llama 架构
-- **参数量**: 375M
-- **特点**: 传统的注意力机制
+- **Type**: Llama variant based on differential attention mechanism
+- **Parameters**: 375M
+- **Features**: Specialized differential attention mechanism
 
-## 📈 结果分析
+### Llama-375M
 
-### 输出文件
+- **Type**: Standard Llama architecture
+- **Parameters**: 375M
+- **Features**: Traditional attention mechanism
 
-实验完成后，结果保存在 `results/` 目录：
+## 📈 Result Analysis
+
+### Output Files
+
+After experiment completion, results are saved in the `results/` directory:
 
 ```
 results/
@@ -150,32 +164,37 @@ results/
     └── sd_samples/
 ```
 
-### 性能指标
+### Performance Metrics
 
-#### Pass@1 准确率
-- 模型第一次尝试给出正确答案的比例
-- 主要评估指标
+#### Pass@1 Accuracy
 
-#### 注意力分析指标
-- **KMI比例**: 关键数学信息的注意力占比
-- **NI比例**: 噪声信息的注意力占比  
-- **OC比例**: 其他内容的注意力占比
+- The proportion of models that give the correct answer on their first attempt
+- Main evaluation metric
 
-### 解读结果
+#### Attention Analysis Metrics
 
-#### 性能对比表格示例
+- **KMI Ratio**: Proportion of attention focused on key mathematical information
+- **NI Ratio**: Proportion of attention focused on noise information
+- **OC Ratio**: Proportion of attention focused on other content
+
+### Interpreting Results
+
+#### Example Performance Comparison Table
+
 ```
            Clean    INF      RCS      SD
 llama      0.145    0.098    0.110    0.105
 diffllama  0.162    0.123    0.135    0.128
 ```
 
-**解读:**
-- DiffLlama 在所有数据集上都优于 Llama
-- 噪声显著降低了两个模型的性能
-- DiffLlama 在噪声数据上的性能下降较小
+**Interpretation:**
 
-#### 注意力分析示例
+- DiffLlama outperforms Llama on all datasets
+- Noise significantly reduces the performance of both models
+- DiffLlama's performance drop is smaller on noisy data
+
+#### Example Attention Analysis
+
 ```json
 {
   "llama": {
@@ -189,19 +208,20 @@ diffllama  0.162    0.123    0.135    0.128
 }
 ```
 
-**解读:**
-- DiffLlama 能更好地关注关键数学信息（KMI）
-- 面对噪声时，DiffLlama 的注意力分散程度较小
-- 证明了差分注意力机制的有效性
+**Interpretation:**
 
-## 🛠 高级使用
+- DiffLlama focuses better on key mathematical information (KMI)
+- When facing noise, DiffLlama's attention dispersion is smaller
+- Proves the effectiveness of the differential attention mechanism
 
-### 自定义配置
+## 🛠 Advanced Usage
 
-编辑配置文件以自定义实验参数：
+### Custom Configuration
+
+Edit configuration file to customize experiment parameters:
 
 ```python
-# src/config.py (如果存在)
+# src/config.py (if exists)
 GENERATION_CONFIG = {
     "max_new_tokens": 512,
     "temperature": 0.1,
@@ -215,25 +235,27 @@ EVALUATION_CONFIG = {
 }
 ```
 
-### 单独运行模块
+### Running Modules Independently
 
-#### 数据生成
+#### Data Generation
+
 ```python
 from src.utils import download_gsm8k
 from src.noise_injection import generate_noisy_datasets
 
-# 下载原始数据
+# Download original data
 download_gsm8k()
 
-# 生成噪声数据集
+# Generate noisy datasets
 generate_noisy_datasets()
 ```
 
-#### 模型评估
+#### Model Evaluation
+
 ```python
 from src.evaluation import run_comprehensive_evaluation
 
-# 运行评估
+# Run evaluation
 results_df, detailed_results = run_comprehensive_evaluation(
     models=['diffllama', 'llama'],
     datasets=['clean', 'inf'],
@@ -241,11 +263,12 @@ results_df, detailed_results = run_comprehensive_evaluation(
 )
 ```
 
-#### 注意力分析
+#### Attention Analysis
+
 ```python
 from src.attention_visualizer import compare_attention_patterns
 
-# 比较注意力模式
+# Compare attention patterns
 results = compare_attention_patterns(
     clean_dataset="data/gsm8k_test.jsonl",
     noisy_dataset="data/gsm8k_inf_test.jsonl",
@@ -253,9 +276,9 @@ results = compare_attention_patterns(
 )
 ```
 
-### 添加新的噪声类型
+### Adding New Noise Type
 
-实现新的噪声注入函数：
+Implement new noise injection function:
 
 ```python
 # src/noise_injection.py
@@ -271,95 +294,105 @@ def generate_custom_noisy_dataset():
     pass
 ```
 
-## 🐛 故障排除
+## 🐛 Troubleshooting
 
-### 常见问题
+### Common Issues
 
-#### 1. CUDA 内存不足
+#### 1. CUDA Memory Not Enough
+
 ```bash
-# 解决方案：减少批量大小或样本数
+# Solution: Reduce batch size or sample count
 python main.py --quick-test --max-samples 10
 ```
 
-#### 2. 模型下载失败
+#### 2. Model Download Failure
+
 ```bash
-# 手动下载模型
+# Manually download model
 python scripts/download_models.py
 
-# 检查网络连接和 Hugging Face 访问
+# Check network connection and Hugging Face access
 ```
 
-#### 3. 导入错误
+#### 3. Import Error
+
 ```bash
-# 检查环境配置
+# Check environment configuration
 python scripts/test_setup.py
 
-# 安装缺失的依赖
+# Install missing dependencies
 pip install -r requirements.txt
 ```
 
-#### 4. 数据生成失败
+#### 4. Data Generation Failure
+
 ```bash
-# 检查网络连接和数据目录权限
+# Check network connection and data directory permissions
 ls -la data/
 
-# 手动下载 GSM8K
+# Manually download GSM8K
 python -c "from src.utils import download_gsm8k; download_gsm8k()"
 ```
 
-### 性能优化
+### Performance Optimization
 
-#### GPU 优化
+#### GPU Optimization
+
 ```python
-# 启用混合精度训练（如果支持）
+# Enable mixed precision training (if supported)
 import torch
 torch.backends.cudnn.benchmark = True
 ```
 
-#### 内存优化
+#### Memory Optimization
+
 ```python
-# 清理 GPU 缓存
+# Clear GPU cache
 import torch
 torch.cuda.empty_cache()
 
-# 使用梯度检查点（如适用）
+# Use gradient checkpointing (if applicable)
 ```
 
-## 📚 扩展实验
+## 📚 Extended Experiments
 
-### 添加新模型
+### Adding New Model
 
-1. 在 `src/model_loader.py` 中添加模型加载逻辑
-2. 更新配置以包含新模型
-3. 运行实验：`python main.py --models your_model,diffllama,llama`
+1. Add model loading logic in `src/model_loader.py`
+2. Update configuration to include new model
+3. Run experiment: `python main.py --models your_model,diffllama,llama`
 
-### 添加新数据集
+### Adding New Dataset
 
-1. 在 `src/utils.py` 中添加数据下载函数
-2. 在 `src/noise_injection.py` 中添加对应的噪声生成
-3. 更新评估流程以支持新数据集
+1. Add data download function in `src/utils.py`
+2. Add corresponding noise generation in `src/noise_injection.py`
+3. Update evaluation process to support new dataset
 
-### 自定义评估指标
+### Custom Evaluation Metrics
 
-1. 在 `src/evaluation.py` 中添加新的评估函数
-2. 修改结果聚合逻辑
-3. 更新结果可视化
+1. Add new evaluation function in `src/evaluation.py`
+2. Modify result aggregation logic
+3. Update result visualization
 
-## 🎓 学术使用
+## 🎓 Academic Usage
 
-### 引用格式
-如果在学术工作中使用此框架，请考虑引用相关论文和数据集。
+### Citation Format
 
-### 实验复现
-为确保实验可复现：
-1. 记录所使用的模型版本
-2. 保存随机种子设置
-3. 记录硬件配置信息
-4. 保存完整的结果文件
+If using this framework in academic work, please consider citing related papers and datasets.
+
+### Experiment Reproducibility
+
+To ensure experiment reproducibility:
+
+1. Record the model version used
+2. Save random seed settings
+3. Record hardware configuration information
+4. Save complete result files
 
 ---
 
-**更多帮助:**
-- 查看 `README.md` 了解项目概览
-- 查看 `colab/README.md` 了解 Colab 使用
-- 运行 `python main.py --help` 查看所有选项 
+**More Help:**
+
+- Check `README.md` for project overview
+- Check `colab/README.md` for Colab usage
+- Run `python main.py --help` to view all options

@@ -62,18 +62,21 @@ Noisy: "A delicious pizza with cheese and pepperoni is cut into 8 equal slices. 
 ## 📊 Experiment Modes
 
 ### 🏃 Quick Test Mode
+
 - **Purpose**: Verify environment and code correctness
 - **Samples**: 20 per dataset
 - **Time**: 30-60 minutes
 - **Command**: `python main.py --quick-test`
 
 ### 📈 Standard Mode  
+
 - **Purpose**: Balanced experimental results
 - **Samples**: 200 per dataset
 - **Time**: 2-4 hours
 - **Command**: `python main.py`
 
 ### 🔬 Complete Mode
+
 - **Purpose**: Complete research data
 - **Samples**: All data (~1300)
 - **Time**: 6-12 hours  
@@ -135,6 +138,7 @@ results/
 ### Example Expected Results
 
 #### Performance Comparison
+
 ```
            Clean    INF      RCS      SD       Average
 llama      0.145    0.098    0.110    0.105    0.115
@@ -143,6 +147,7 @@ improvement +0.017   +0.025   +0.025   +0.023   +0.022
 ```
 
 #### Attention Analysis
+
 ```json
 {
   "attention_summary": {
@@ -190,18 +195,21 @@ improvement +0.017   +0.025   +0.025   +0.023   +0.022
 ### Common Issues
 
 #### GPU Memory Insufficient
+
 ```bash
 # Use smaller batch size and sample count
 python main.py --quick-test --max-samples 10
 ```
 
 #### Model Download Failed  
+
 ```bash
 # Check network connection, retry manually
 python scripts/download_models.py
 ```
 
 #### Import Errors
+
 ```bash
 # Verify environment configuration
 python scripts/test_setup.py --quick
@@ -217,9 +225,11 @@ python scripts/test_setup.py --quick
 ## 🎓 Academic Usage
 
 ### Citation Information
+
 If you use this framework in your research, please consider citing the relevant DiffLlama paper and GSM8K dataset.
 
 ### Experiment Reproduction
+
 - Set random seeds for reproducibility
 - Record hardware configuration and model versions
 - Save complete experiment configuration and results
@@ -234,11 +244,12 @@ Contributions in code, issue reports, or improvement suggestions are welcome. Pl
 
 ---
 
-**🚀 Start your noise robustness research journey!** 
+**🚀 Start your noise robustness research journey!**
 
 Choose your usage mode:
+
 - 🏃 **Quick Experience**: `python main.py --quick-test`  
 - 🔬 **Complete Research**: `python main.py`
 - 📱 **Cloud Experiment**: Use Google Colab
 
-**Need help?** Check the [Usage Guide](docs/USAGE_GUIDE.md) or run `python scripts/test_setup.py` to check environment configuration. 
+**Need help?** Check the [Usage Guide](docs/USAGE_GUIDE.md) or run `python scripts/test_setup.py` to check environment configuration.
