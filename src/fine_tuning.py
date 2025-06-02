@@ -131,7 +131,7 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
         learning_rate=learning_rate,
         weight_decay=0.01,
         logging_steps=10,
-        save_steps=200,
+        save_steps=934,  # train_dataset.length / effective batch_size = 7473 / 8
         save_total_limit=2,
         prediction_loss_only=True,
         remove_unused_columns=False,
