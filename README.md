@@ -2,6 +2,9 @@
 
 A research project on mathematical reasoning noise robustness based on differential attention mechanism, comparing the performance of [DiffLlama-375M](https://huggingface.co/reyllama/DiffLlama-375M) and [Llama-375M](https://huggingface.co/reyllama/Llama_375M) on noisy mathematical problems.
 
+> [!NOTE]
+> For usage guide, please refer to [USAGE_GUIDE.md](USAGE_GUIDE.md).
+
 ## 📋 Project Overview
 
 This project implements a complete experimental framework for studying and comparing the noise robustness of different attention mechanisms in mathematical reasoning tasks. Through systematic experimental design, it deeply explores the advantages of DiffLlama's differential attention mechanism compared to traditional attention mechanisms.
@@ -16,33 +19,34 @@ This project implements a complete experimental framework for studying and compa
 ## 🏗️ Project Structure
 
 ```bash
-DiffLlama_Experiment/
-├── src/                                     # Core source code
-│   ├── utils.py                             # Data download and processing tools
-│   ├── model_loader.py                      # Model loading and configuration
-│   ├── noise_injection.py                   # Three noise injection strategies
-│   ├── evaluation.py                        # Evaluation and performance analysis
-│   ├── fine_tuning.py                       # Supervised fine-tuning (optional)
-│   └── attention_visualizer.py              # Attention visualization and analysis
-├── colab/                                   # Google Colab specific
-│   ├── experiment.py                        # Colab main experiment script
-│   ├── config.py                            # Colab environment configuration
-│   ├── README.md                            # Colab detailed guide
-│   └── DiffLlama_Colab_Experiment.ipynb     # Main experiment notebook
-├── scripts/                                 # Helper scripts
-│   ├── download_models.py                   # Model download script
-│   ├── test_setup.py                        # Environment configuration test
-│   └── interactive_inference.py             # Interactive inference tool
-├── docs/                                    # Documentation
-│   ├── USAGE_GUIDE.md                       # Detailed usage instructions
-│   └── PROJECT_SUMMARY.md                   # Project file organization
-├── results/                                 # Experiment results
-│   └── attention_maps/                      # Attention visualization outputs
-├── models_finetuned/                        # Fine-tuned model storage
-├── main.py                                  # Main experiment entry point
-├── requirements.txt                         # Python dependencies
-├── README.md                                # Project documentation
-└── LICENSE                                  # License file
+.
+├── colab
+│   ├── config.py
+│   ├── DiffLlama_Colab_Experiment.ipynb
+│   ├── experiment.py
+│   ├── __init__.py
+│   └── README.md
+├── data
+├── LICENSE
+├── main.py
+├── README.md
+├── requirements.txt
+├── scripts
+│   ├── download_models.py
+│   ├── __init__.py
+│   ├── interactive_inference.py
+│   ├── test_diffllama_attention.py
+│   ├── test_llama_attention.py
+│   └── test_setup.py
+├── src
+│   ├── attention_visualizer.py
+│   ├── evaluation.py
+│   ├── fine_tuning.py
+│   ├── __init__.py
+│   ├── model_loader.py
+│   ├── noise_injection.py
+│   └── utils.py
+└── USAGE_GUIDE.md
 ```
 
 ### Example of Noise Injection
@@ -58,107 +62,57 @@ Noisy: "A delicious pizza with cheese and pepperoni is cut into 8 equal slices. 
 - **Attention Allocation Ratio**: Attention proportion for KMI/NI/OC tokens
 - **Robustness Degradation**: Performance change from clean to noisy data
 
-## 📊 Experiment Modes
+### Experiment Modes
 
-### 🏃 Quick Test Mode
+#### 1. Quick Test Mode
 
-- **Purpose**: Verify environment and code correctness
-- **Samples**: 20 per dataset
-- **Time**: 30-60 minutes
+- **Purpose**: Verify environment configuration and code correctness
+- **Sample Count**: 20 per dataset
+- **Runtime**: 30-60 minutes
 - **Command**: `python main.py --quick-test`
 
-### 📈 Standard Mode  
+#### 2. Standard Mode
 
 - **Purpose**: Balanced experimental results
-- **Samples**: 200 per dataset
-- **Time**: 2-4 hours
+- **Sample Count**: 200 per dataset (customizable)
+- **Runtime**: 2-4 hours
 - **Command**: `python main.py`
 
-### 🔬 Complete Mode
+#### 3. Full Mode
 
-- **Purpose**: Complete research data
-- **Samples**: All data (~1300)
-- **Time**: 6-12 hours  
+- **Purpose**: Complete research results
+- **Sample Count**: All data (~1300 samples)
+- **Runtime**: 6-12 hours
 - **Command**: `python main.py --max-samples -1`
 
-## 🎛️ Advanced Configuration
+## 📊 Dataset Description
 
-### Custom Experiment Parameters
+### Original Dataset
 
-```bash
-# Specify sample count
-python main.py --max-samples 100
+- **Clean**: GSM8K original test set
+- **Size**: 1,319 math problems
 
-# Skip time-consuming fine-tuning step
-python main.py --skip-sft
+### Noisy Datasets
 
-# Skip zero-shot evaluation step
-python main.py --skip-zero-shot
+- **INF** (Irrelevant Numbers/Facts): Add irrelevant numbers and facts
+- **RCS** (Redundant Calculation Steps): Add redundant calculation steps
+- **SD** (Semantic Distraction): Add semantic distraction information
 
-# Test specific model only
-python main.py --models diffllama
+Each noisy dataset is generated based on the original Clean dataset.
 
-# Test specific datasets only
-python main.py --datasets clean,inf
+## 🤖 Model Description
 
-# Skip attention analysis to save time
-python main.py --skip-attention
-```
+### DiffLlama-375M
 
-For a specific setup (50 samples for evaluation, 100 samples for SFT, 1 epoch for SFT)
+- **Type**: Llama variant based on differential attention mechanism
+- **Parameters**: 375M
+- **Features**: Specialized differential attention mechanism
 
-```bash
-## Evaluation only
-python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-sft --skip-attention
+### Llama-375M
 
-## SFT only
-python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-zero-shot --skip-attention
-
-## Evaluation + SFT
-python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-attention
-
-## SFT + Attention Analysis
-python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-zero-shot
-
-## All steps: Evaluation + SFT + Attention Analysis
-python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1
-```
-
-### Google Colab Specific Options
-
-```bash
-# Different experiment modes
-!python colab/experiment.py --mode quick    # Quick (20 samples)
-!python colab/experiment.py --mode medium  # Medium (100 samples)  
-!python colab/experiment.py --mode full    # Complete (custom)
-
-# Environment setup only
-!python colab/experiment.py --setup
-
-# Skip specific steps
-!python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
-!python colab/experiment.py --mode medium --skip-attention
-```
-
-For `full` mode:
-
-```bash
-# Full experiment (run only when you have enough time)
-## Evaluation only
-!python -m colab.experiment --mode full --skip-attention
-
-## SFT only
-!python -m colab.experiment --mode full --skip-zero-shot --enable-sft --skip-attention
-
-## Evaluation + SFT
-!python -m colab.experiment --mode full --enable-sft --skip-attention
-
-## SFT + Attention Analysis
-!python -m colab.experiment --mode full --skip-zero-shot --enable-sft
-
-## All steps: Evaluation + SFT + Attention Analysis
-!python -m colab.experiment --mode full --enable-sft
-```
+- **Type**: Standard Llama architecture
+- **Parameters**: 375M
+- **Features**: Traditional attention mechanism
 
 ## 📈 Result Analysis
 
@@ -166,103 +120,66 @@ For `full` mode:
 
 ```bash
 results/
-├── experiment_results_[timestamp].csv      # Main performance data
-├── detailed_results_[timestamp].json       # Detailed results
-├── attention_analysis_[timestamp].json     # Attention analysis
-├── model_comparison.png                    # Performance comparison charts
-└── attention_maps/                         # Attention heatmaps
+├── experiment_results_[timestamp].csv     # Main performance results
+├── detailed_results_[timestamp].json      # Detailed results
+├── attention_analysis_[timestamp].json    # Attention analysis
+├── model_comparison_[timestamp].png       # Performance comparison
+└── attention_maps/                        # Attention heatmaps
     ├── clean_samples/
-    ├── inf_samples/  
+    ├── inf_samples/
     ├── rcs_samples/
     └── sd_samples/
 ```
 
-### Example Expected Results
+### Performance Metrics
 
-#### Performance Comparison
+#### Pass@1 Accuracy
+
+- The proportion of models that give the correct answer on their first attempt
+- Main evaluation metric
+
+#### Attention Analysis Metrics
+
+- **KMI Ratio**: Proportion of attention focused on key mathematical information
+- **NI Ratio**: Proportion of attention focused on noise information
+- **OC Ratio**: Proportion of attention focused on other content
+
+### Interpreting Results
+
+#### Example Performance Comparison Table
 
 ```
-           Clean    INF      RCS      SD       Average
-llama      0.145    0.098    0.110    0.105    0.115
-diffllama  0.162    0.123    0.135    0.128    0.137
-improvement +0.017   +0.025   +0.025   +0.023   +0.022
+           Clean    INF      RCS      SD
+llama      0.145    0.098    0.110    0.105
+diffllama  0.162    0.123    0.135    0.128
 ```
 
-#### Attention Analysis
+**Interpretation:**
+
+- DiffLlama outperforms Llama on all datasets
+- Noise significantly reduces the performance of both models
+- DiffLlama's performance drop is smaller on noisy data
+
+#### Example Attention Analysis
 
 ```json
 {
-  "attention_summary": {
-    "llama": {
-      "clean": {"kmi_ratio": 0.45, "noise_ratio": 0.0},
-      "noisy": {"kmi_ratio": 0.32, "noise_ratio": 0.18}
-    },
-    "diffllama": {
-      "clean": {"kmi_ratio": 0.50, "noise_ratio": 0.0}, 
-      "noisy": {"kmi_ratio": 0.43, "noise_ratio": 0.12}
-    }
+  "llama": {
+    "clean": {"kmi_ratio": 0.45, "ni_ratio": 0.0, "oc_ratio": 0.55},
+    "inf": {"kmi_ratio": 0.32, "ni_ratio": 0.18, "oc_ratio": 0.50}
+  },
+  "diffllama": {
+    "clean": {"kmi_ratio": 0.50, "ni_ratio": 0.0, "oc_ratio": 0.50},
+    "inf": {"kmi_ratio": 0.43, "ni_ratio": 0.12, "oc_ratio": 0.45}
   }
 }
 ```
 
-## 🛠 Development and Extension
+**Interpretation:**
 
-### Adding New Noise Types
-
-1. Implement noise function in `src/noise_injection.py`
-2. Integrate new function in data generation pipeline
-3. Update evaluation pipeline to support new dataset
-
-### Adding New Models
-
-1. Add loading logic in `src/model_loader.py`
-2. Configure model paths and parameters
-3. Update evaluation pipeline
-
-### Custom Evaluation Metrics
-
-1. Implement new metrics in `src/evaluation.py`
-2. Modify result aggregation and visualization logic
-3. Update result output format
-
-## 📚 Documentation Resources
-
-- **[Detailed Usage Guide](docs/USAGE_GUIDE.md)**: Complete usage instructions and advanced configuration
-- **[Colab Usage Guide](colab/README.md)**: Google Colab specific instructions
-- **[Project File Organization](docs/PROJECT_SUMMARY.md)**: File structure and organization explanation
-- **Command Line Help**: `python main.py --help`
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### GPU Memory Insufficient
-
-```bash
-# Use smaller batch size and sample count
-python main.py --quick-test --max-samples 10
-```
-
-#### Model Download Failed  
-
-```bash
-# Check network connection, retry manually
-python scripts/download_models.py
-```
-
-#### Import Errors
-
-```bash
-# Verify environment configuration
-python scripts/test_setup.py --quick
-```
-
-### Performance Optimization
-
-- **GPU**: Use CUDA acceleration, 12GB+ VRAM recommended
-- **Memory**: 16GB+ system memory recommended
-- **Storage**: At least 15GB available space for model cache
-- **Network**: First run requires model and data downloads
+- DiffLlama focuses better on key mathematical information (KMI)
+- When facing noise, DiffLlama's attention dispersion is smaller
+- Proves the effectiveness of the differential attention mechanism
 
 ## 🎓 Academic Usage
 
@@ -283,15 +200,3 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## 🤝 Contributing
 
 Contributions in code, issue reports, or improvement suggestions are welcome. Please participate through GitHub Issues or Pull Requests.
-
----
-
-**🚀 Start your noise robustness research journey!**
-
-Choose your usage mode:
-
-- 🏃 **Quick Experience**: `python main.py --quick-test`  
-- 🔬 **Complete Research**: `python main.py`
-- 📱 **Cloud Experiment**: Use Google Colab
-
-**Need help?** Check the [Usage Guide](docs/USAGE_GUIDE.md) or run `python scripts/test_setup.py` to check environment configuration.
