@@ -105,23 +105,23 @@ python main.py --datasets clean,inf
 python main.py --skip-attention
 ```
 
-For 200 samples:
+For a specific setup (50 samples for evaluation, 100 samples for SFT, 1 epoch for SFT)
 
 ```bash
 ## Evaluation only
-python -m main --max-samples 200 --skip-sft --skip-attention
+python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-sft --skip-attention
 
 ## SFT only
-python -m main --max-samples 200 --skip-zero-shot --skip-attention
+python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-zero-shot --skip-attention
 
 ## Evaluation + SFT
-python -m main --max-samples 200 --skip-attention
+python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-attention
 
 ## SFT + Attention Analysis
-python -m main --max-samples 200 --skip-zero-shot
+python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-zero-shot
 
 ## All steps: Evaluation + SFT + Attention Analysis
-python -m main --max-samples 200
+python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1
 ```
 
 ### Google Colab Specific Options
