@@ -105,6 +105,25 @@ python main.py --datasets clean,inf
 python main.py --skip-attention
 ```
 
+For 200 samples:
+
+```bash
+## Evaluation only
+python -m main --max-samples 200 --skip-sft --skip-attention
+
+## SFT only
+python -m main --max-samples 200 --skip-zero-shot --skip-attention
+
+## Evaluation + SFT
+python -m main --max-samples 200 --skip-attention
+
+## SFT + Attention Analysis
+python -m main --max-samples 200 --skip-zero-shot
+
+## All steps: Evaluation + SFT + Attention Analysis
+python -m main --max-samples 200
+```
+
 ### Google Colab Specific Options
 
 ```bash
@@ -119,6 +138,26 @@ python main.py --skip-attention
 # Skip specific steps
 !python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
 !python colab/experiment.py --mode medium --skip-attention
+```
+
+For `full` mode:
+
+```bash
+# Full experiment (run only when you have enough time)
+## Evaluation only
+!python -m colab.experiment --mode full --skip-attention
+
+## SFT only
+!python -m colab.experiment --mode full --skip-zero-shot --enable-sft --skip-attention
+
+## Evaluation + SFT
+!python -m colab.experiment --mode full --enable-sft --skip-attention
+
+## SFT + Attention Analysis
+!python -m colab.experiment --mode full --skip-zero-shot --enable-sft
+
+## All steps: Evaluation + SFT + Attention Analysis
+!python -m colab.experiment --mode full --enable-sft
 ```
 
 ## 📈 Result Analysis
