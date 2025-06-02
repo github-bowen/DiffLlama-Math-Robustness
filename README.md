@@ -15,40 +15,39 @@ This project implements a complete experimental framework for studying and compa
 
 ## 🏗️ Project Structure
 
-```
+```bash
 DiffLlama_Experiment/
-├── 🧠 src/                             # Core source code
-│   ├── utils.py                        # Data download and processing tools
-│   ├── model_loader.py                 # Model loading and configuration
-│   ├── noise_injection.py              # Three noise injection strategies
-│   ├── evaluation.py                   # Evaluation and performance analysis
-│   ├── fine_tuning.py                  # Supervised fine-tuning (optional)
-│   └── attention_visualizer.py         # Attention visualization and analysis
-├── 🔬 colab/                           # Google Colab specific
-│   ├── experiment.py                   # Colab main experiment script
-│   ├── config.py                       # Colab environment configuration
-│   └── README.md                       # Colab detailed guide
-├── 📓 notebooks/                       # Jupyter notebooks
-│   └── DiffLlama_Colab_Experiment.ipynb # Main experiment notebook
-├── 🛠 scripts/                         # Helper scripts
-│   ├── download_models.py              # Model download script
-│   ├── test_setup.py                   # Environment configuration test
-│   └── interactive_inference.py        # Interactive inference tool
-├── 📚 docs/                            # Documentation
-│   ├── USAGE_GUIDE.md                  # Detailed usage instructions
-│   └── PROJECT_SUMMARY.md              # Project file organization
-├── 📊 results/                         # Experiment results
-│   └── attention_maps/                 # Attention visualization outputs
-├── 🏋️ models_finetuned/                # Fine-tuned model storage
-├── 📋 main.py                          # Main experiment entry point
-├── 📄 requirements.txt                 # Python dependencies
-├── 📖 README.md                        # Project documentation
-└── 📜 LICENSE                          # License file
+├── src/                                     # Core source code
+│   ├── utils.py                             # Data download and processing tools
+│   ├── model_loader.py                      # Model loading and configuration
+│   ├── noise_injection.py                   # Three noise injection strategies
+│   ├── evaluation.py                        # Evaluation and performance analysis
+│   ├── fine_tuning.py                       # Supervised fine-tuning (optional)
+│   └── attention_visualizer.py              # Attention visualization and analysis
+├── colab/                                   # Google Colab specific
+│   ├── experiment.py                        # Colab main experiment script
+│   ├── config.py                            # Colab environment configuration
+│   ├── README.md                            # Colab detailed guide
+│   └── DiffLlama_Colab_Experiment.ipynb     # Main experiment notebook
+├── scripts/                                 # Helper scripts
+│   ├── download_models.py                   # Model download script
+│   ├── test_setup.py                        # Environment configuration test
+│   └── interactive_inference.py             # Interactive inference tool
+├── docs/                                    # Documentation
+│   ├── USAGE_GUIDE.md                       # Detailed usage instructions
+│   └── PROJECT_SUMMARY.md                   # Project file organization
+├── results/                                 # Experiment results
+│   └── attention_maps/                      # Attention visualization outputs
+├── models_finetuned/                        # Fine-tuned model storage
+├── main.py                                  # Main experiment entry point
+├── requirements.txt                         # Python dependencies
+├── README.md                                # Project documentation
+└── LICENSE                                  # License file
 ```
 
 ### Example of Noise Injection
 
-```
+```bash
 Original: "A pizza is cut into 8 slices. If 3 slices are eaten, how many remain?"
 Noisy: "A delicious pizza with cheese and pepperoni is cut into 8 equal slices. The pizza smells great. If 3 slices are eaten quickly, how many slices remain on the plate?"
 ```
@@ -122,7 +121,7 @@ python main.py --skip-attention
 
 ### Output Files
 
-```
+```bash
 results/
 ├── experiment_results_[timestamp].csv      # Main performance data
 ├── detailed_results_[timestamp].json       # Detailed results
