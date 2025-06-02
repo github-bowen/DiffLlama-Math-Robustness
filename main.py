@@ -345,6 +345,7 @@ def main():
 Examples:
     python main.py                          # Run full experiment
     python main.py --quick-test             # Quick test with minimal samples
+    python main.py --skip-zero-shot         # Skip zero-shot evaluation
     python main.py --skip-sft               # Skip fine-tuning
     python main.py --skip-attention         # Skip attention analysis
     python main.py --max-samples 100        # Limit evaluation samples
@@ -355,6 +356,8 @@ Examples:
                        help="Run with minimal samples for quick testing")
     parser.add_argument("--skip-sft", action="store_true",
                        help="Skip supervised fine-tuning")
+    parser.add_argument("--skip-zero-shot", action="store_true",
+                       help="Skip zero-shot evaluation")
     parser.add_argument("--skip-attention", action="store_true", 
                        help="Skip attention visualization and analysis")
     parser.add_argument("--max-samples", type=int, default=None,
@@ -396,7 +399,12 @@ Examples:
         step_1_data_preparation()
         
         # Step 2: Zero-shot Evaluation  
-        results_df, detailed_results = step_2_zero_shot_evaluation(eval_samples)
+        results_df = None
+        detailed_results = None
+        if not args.skip_zero_shot:
+            results_df, detailed_results = step_2_zero_shot_evaluation(eval_samples)
+        else:
+            print("\n⏭️  Skipping zero-shot evaluation")
         
         # Step 3: Supervised Fine-tuning (optional)
         sft_model_paths = {}
