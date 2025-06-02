@@ -244,14 +244,14 @@ def run_full_sft_pipeline(max_train_samples=500, num_epochs=2):
         print("Training data not found. Please download GSM8K dataset first.")
         return {}
     
-    # Create training subset
+    # Create training subset (Overwrite if exists)
     sft_train_file = "data/gsm8k_train_sft.jsonl"
-    if not os.path.exists(sft_train_file):
-        create_training_subset(
-            original_file="data/gsm8k_train.jsonl",
-            output_file=sft_train_file,
-            num_samples=max_train_samples
-        )
+    create_training_subset(
+        original_file="data/gsm8k_train.jsonl",
+        output_file=sft_train_file,
+        num_samples=max_train_samples
+    )
+        
     
     sft_model_paths = {}
     

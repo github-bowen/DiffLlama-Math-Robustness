@@ -255,25 +255,26 @@ def run_colab_experiment(mode="quick", max_samples=None, skip_sft=True, skip_att
                 download_gsm8k()
             except Exception as e:
                 print(f"⚠️  GSM8K download failed: {e}")
-                print("🔧 Trying to create sample data for testing...")
+                # print("🔧 Trying to create sample data for testing...")
                 
-                # Create minimal sample data for testing
-                sample_data = [
-                    {
-                        "question": "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much does she make every day?",
-                        "answer": "The answer is 18"
-                    }
-                ] * 10  # Repeat to have some data
+                # # Create minimal sample data for testing
+                # sample_data = [
+                #     {
+                #         "question": "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much does she make every day?",
+                #         "answer": "The answer is 18"
+                #     }
+                # ] * 10  # Repeat to have some data
                 
-                os.makedirs("data", exist_ok=True)
-                with open("data/gsm8k_test.jsonl", "w") as f:
-                    for item in sample_data:
-                        f.write(json.dumps(item) + "\n")
-                with open("data/gsm8k_train.jsonl", "w") as f:
-                    for item in sample_data:
-                        f.write(json.dumps(item) + "\n")
+                # os.makedirs("data", exist_ok=True)
+                # with open("data/gsm8k_test.jsonl", "w") as f:
+                #     for item in sample_data:
+                #         f.write(json.dumps(item) + "\n")
+                # with open("data/gsm8k_train.jsonl", "w") as f:
+                #     for item in sample_data:
+                #         f.write(json.dumps(item) + "\n")
                 
-                print("✅ Created sample data for testing")
+                # print("✅ Created sample data for testing")
+                raise Exception("GSM8K download failed")
         else:
             print("✅ GSM8K dataset already exists")
         
@@ -346,7 +347,8 @@ def run_colab_experiment(mode="quick", max_samples=None, skip_sft=True, skip_att
             
             # Check if training data exists
             if not os.path.exists("data/gsm8k_train.jsonl"):
-                print("⚠️  Training data not found. Skipping SFT.")
+                print("⚠️  Training data not found.")
+                raise Exception("Training data not found")
             else:
                 try:
                     print(f"Running SFT with {sft_samples} samples, {sft_epochs} epochs...")

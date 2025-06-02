@@ -5,9 +5,28 @@ import numpy as np
 import os
 import re
 from tqdm import tqdm
-from src.model_loader import load_model_and_tokenizer
+from src.model_loader import load_model_and_tokenizer, load_model_from_path
 from src.utils import load_jsonl
 from src.noise_injection import inject_inf_noise, inject_rcs_noise, inject_sd_noise
+
+def convert_to_json_serializable(obj):
+    """
+    Convert numpy types to JSON-serializable Python types.
+    """
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, (np.int32, np.int64)):
+        return int(obj)
+    elif isinstance(obj, dict):
+        return {key: convert_to_json_serializable(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_json_serializable(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_to_json_serializable(item) for item in obj)
+    else:
+        return obj
 
 def get_attention_scores(model, tokenizer, text, device, model_type, layer_idx=-1, head_idx=0):
     """
@@ -280,7 +299,7 @@ def plot_attention_heatmap(attention_matrix, tokens_x, tokens_y, title, save_pat
     
     plt.close()
 
-def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_idx=0, save_dir="results/attention_maps"):
+def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_idx=0, save_dir="results/attention_maps", model_path=None):
     """
     Visualize attention for a sample question.
     
@@ -290,13 +309,18 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
         layer_idx: layer to visualize
         head_idx: attention head to visualize
         save_dir: directory to save visualizations
+        model_path: optional path to custom model (e.g., fine-tuned model)
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
-    print(f"Visualizing attention for {model_type} model...")
+    model_source = f" from {model_path}" if model_path else ""
+    print(f"Visualizing attention for {model_type} model{model_source}...")
     print(f"Question: {sample_question[:100]}...")
     
-    model, tokenizer = load_model_and_tokenizer(model_type, device)
+    if model_path:
+        model, tokenizer = load_model_from_path(model_path, device)
+    else:
+        model, tokenizer = load_model_and_tokenizer(model_type, device)
     
     prompt = f"Question: {sample_question}\nAnswer:"
     
@@ -311,8 +335,9 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
     head_info = f"Head {metadata['head_idx']}"
     
     if attention_matrix is not None:
-        title = f"{model_type.upper()} Attention {layer_info} {head_info}"
-        filename = f"{model_type}_attn_layer{actual_layer_idx}_head{metadata['head_idx']}_sample.png"
+        model_suffix = "_sft" if model_path else ""
+        title = f"{model_type.upper()}{model_suffix} Attention {layer_info} {head_info}"
+        filename = f"{model_type}{model_suffix}_attn_layer{actual_layer_idx}_head{metadata['head_idx']}_sample.png"
         save_path = os.path.join(save_dir, filename)
         
         plot_attention_heatmap(
@@ -390,7 +415,7 @@ def classify_tokens(tokens, original_question, noisy_question=None):
     
     return classifications
 
-def quantify_attention_allocation(model_type, dataset_file, num_samples=10, layer_idx=-1, head_idx=0):
+def quantify_attention_allocation(model_type, dataset_file, num_samples=10, layer_idx=-1, head_idx=0, model_path=None):
     """
     Quantify attention allocation ratios for KMI, NI, and OC tokens.
     
@@ -400,15 +425,20 @@ def quantify_attention_allocation(model_type, dataset_file, num_samples=10, laye
         num_samples: number of samples to analyze
         layer_idx: layer to analyze
         head_idx: attention head to analyze
+        model_path: optional path to custom model (e.g., fine-tuned model)
     
     Returns:
         attention_stats: dictionary with allocation statistics
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
-    print(f"Quantifying attention allocation for {model_type}...")
+    model_source = f" from {model_path}" if model_path else ""
+    print(f"Quantifying attention allocation for {model_type}{model_source}...")
     
-    model, tokenizer = load_model_and_tokenizer(model_type, device)
+    if model_path:
+        model, tokenizer = load_model_from_path(model_path, device)
+    else:
+        model, tokenizer = load_model_and_tokenizer(model_type, device)
     dataset = load_jsonl(dataset_file)[:num_samples]
     
     kmi_ratios = []
@@ -466,6 +496,7 @@ def quantify_attention_allocation(model_type, dataset_file, num_samples=10, laye
     # Calculate statistics
     stats = {
         'model_type': model_type,
+        'model_path': model_path if model_path else 'default',
         'dataset': dataset_file,
         'num_samples': len(kmi_ratios),
         'kmi_mean': np.mean(kmi_ratios) if kmi_ratios else 0,
@@ -486,13 +517,16 @@ def quantify_attention_allocation(model_type, dataset_file, num_samples=10, laye
                  # Stack arrays and take mean across samples, then mean of the vector
                 try:
                     stacked_arrays = np.stack(all_vals)
-                    lambda_means[f"{p_name}_mean_vector"] = np.mean(stacked_arrays, axis=0) # vector of means
-                    lambda_means[f"{p_name}_overall_mean"] = np.mean(stacked_arrays) # scalar mean
+                    lambda_means[f"{p_name}_mean_vector"] = convert_to_json_serializable(np.mean(stacked_arrays, axis=0)) # vector of means
+                    lambda_means[f"{p_name}_overall_mean"] = float(np.mean(stacked_arrays)) # scalar mean
                 except Exception as e:
                     print(f"Could not stack arrays for {p_name}: {e}")
 
         stats['aggregated_lambda_params_means'] = lambda_means
         # print(f"Aggregated Lambda Param Means (DiffLlama): {lambda_means}")
+
+    # Convert all stats to JSON-serializable format
+    stats = convert_to_json_serializable(stats)
 
     print(f"\nAttention Allocation Results for {model_type}:")
     print(f"KMI (Key Math Info): {stats['kmi_mean']:.3f} ± {stats['kmi_std']:.3f}")
@@ -508,11 +542,19 @@ def quantify_attention_allocation(model_type, dataset_file, num_samples=10, laye
 
 def compare_attention_patterns(clean_dataset="data/gsm8k_test.jsonl", 
                               noisy_dataset="data/gsm8k_inf_test.jsonl",
-                              num_samples=5):
+                              num_samples=5, sft_model_paths=None):
     """
     Compare attention patterns between clean and noisy questions for both models.
+    
+    Args:
+        clean_dataset: path to clean dataset
+        noisy_dataset: path to noisy dataset
+        num_samples: number of samples to analyze
+        sft_model_paths: dict with model paths for fine-tuned models, e.g. {"llama": "path/to/llama_sft", "diffllama": "path/to/diffllama_sft"}
     """
-    print("Comparing attention patterns between models and datasets...")
+    use_sft = sft_model_paths and len(sft_model_paths) > 0
+    model_suffix = " (SFT)" if use_sft else ""
+    print(f"Comparing attention patterns between models and datasets{model_suffix}...")
     
     # Load sample data
     clean_data = load_jsonl(clean_dataset)[:num_samples]
@@ -523,27 +565,36 @@ def compare_attention_patterns(clean_dataset="data/gsm8k_test.jsonl",
     for model_type in ["llama", "diffllama"]:
         results[model_type] = {}
         
+        # Get model path (use SFT model if available, otherwise None for default)
+        model_path = None
+        if use_sft and model_type in sft_model_paths:
+            model_path = sft_model_paths[model_type]
+            print(f"Using fine-tuned model for {model_type}: {model_path}")
+        else:
+            print(f"Using default model for {model_type}")
+        
         # Analyze clean data
         print(f"\nAnalyzing {model_type} on clean data...")
         clean_stats = quantify_attention_allocation(
-            model_type, clean_dataset, num_samples, layer_idx=-1, head_idx=0
+            model_type, clean_dataset, num_samples, layer_idx=-1, head_idx=0, model_path=model_path
         )
         results[model_type]['clean'] = clean_stats
         
         # Analyze noisy data
         print(f"\nAnalyzing {model_type} on noisy data...")
         noisy_stats = quantify_attention_allocation(
-            model_type, noisy_dataset, num_samples, layer_idx=-1, head_idx=0
+            model_type, noisy_dataset, num_samples, layer_idx=-1, head_idx=0, model_path=model_path
         )
         results[model_type]['noisy'] = noisy_stats
     
     # Print comparison
     print("\n" + "="*80)
-    print("ATTENTION ALLOCATION COMPARISON")
+    print(f"ATTENTION ALLOCATION COMPARISON{model_suffix}")
     print("="*80)
     
     for model_type in ["llama", "diffllama"]:
-        print(f"\n{model_type.upper()} Model:")
+        model_display = f"{model_type.upper()}{' (SFT)' if use_sft and model_type in sft_model_paths else ''}"
+        print(f"\n{model_display} Model:")
         clean_stats = results[model_type]['clean']
         noisy_stats = results[model_type]['noisy']
         
