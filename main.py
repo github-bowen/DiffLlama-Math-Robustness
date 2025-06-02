@@ -10,7 +10,7 @@ This script implements the complete experimental pipeline:
 5. Attention visualization and quantification
 
 Usage:
-    python main.py [--quick-test] [--skip-sft] [--skip-attention] [--max-samples N]
+    python -m main [--quick-test] [--skip-sft] [--skip-attention] [--max-samples N]
 """
 
 import os
@@ -343,12 +343,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python main.py                          # Run full experiment
-    python main.py --quick-test             # Quick test with minimal samples
-    python main.py --skip-zero-shot         # Skip zero-shot evaluation
-    python main.py --skip-sft               # Skip fine-tuning
-    python main.py --skip-attention         # Skip attention analysis
-    python main.py --max-samples 100        # Limit evaluation samples
+    python -m main                          # Run full experiment
+    python -m main --quick-test             # Quick test with minimal samples
+    python -m main --skip-zero-shot         # Skip zero-shot evaluation
+    python -m main --skip-sft               # Skip fine-tuning
+    python -m main --skip-attention         # Skip attention analysis
+    python -m main --max-samples 100        # Limit evaluation samples
         """
     )
     

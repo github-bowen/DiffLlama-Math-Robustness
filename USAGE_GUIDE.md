@@ -10,24 +10,38 @@ First, verify that the environment is properly configured:
 
 ```bash
 # Run environment test
-python scripts/test_setup.py
+python -m scripts.test_setup
 
 # Quick test mode
-python scripts/test_setup.py --quick
+python -m scripts.test_setup --quick
 ```
 
 ### 2. Download Models (if needed)
 
 ```bash
 # Download models required for experiments
-python scripts/download_models.py
+python -m scripts.download_models
 ```
 
-### 3. Run Quick Experiment
+### 3. Inspect Model Structure and Attention Patterns (Optional)
+
+Models used in this step are zero-shot models, which can be downloaded in the previous step.
+
+```bash
+python -m scripts.inspect_model_structure --model llama
+python -m scripts.inspect_model_structure --model diffllama
+```
+
+```bash
+python -m scripts.test_llama_attention
+python -m scripts.test_diffllama_attention
+```
+
+### 4. Run Quick Experiment
 
 ```bash
 # Run quick test with 20 samples
-python main.py --quick-test
+python -m main --quick-test
 ```
 
 ## 🔧 Detailed Usage Instructions
@@ -37,7 +51,7 @@ python main.py --quick-test
 #### Main Experiment Script (`main.py`)
 
 ```bash
-python main.py [OPTIONS]
+python -m main [OPTIONS]
 ```
 
 **Main Options:**
@@ -55,22 +69,22 @@ python main.py [OPTIONS]
 
 ```bash
 # Full experiment
-python main.py
+python -m main
 
 # Custom sample count
-python main.py --max-samples 100
+python -m main --max-samples 100
 
 # Skip zero-shot evaluation step
-python main.py --skip-zero-shot
+python -m main --skip-zero-shot
 
 # Skip time-consuming fine-tuning step
-python main.py --skip-sft
+python -m main --skip-sft
 
 # Test specific datasets only
-python main.py --datasets clean,inf
+python -m main --datasets clean,inf
 
 # Test specific models only
-python main.py --models diffllama
+python -m main --models diffllama
 ```
 
 For a specific setup (50 samples for evaluation, 100 samples for SFT, 1 epoch for SFT)
@@ -98,7 +112,7 @@ python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1
 #### Colab Experiment Script (`colab/experiment.py`)
 
 ```bash
-python colab/experiment.py [OPTIONS]
+python -m colab.experiment [OPTIONS]
 ```
 
 **Colab-Specific Options:**
@@ -117,16 +131,16 @@ python colab/experiment.py [OPTIONS]
 
 ```bash
 # Different experiment modes
-!python colab/experiment.py --mode quick    # Quick (20 samples)
-!python colab/experiment.py --mode medium  # Medium (100 samples)  
-!python colab/experiment.py --mode full    # Complete (custom)
+!python -m colab.experiment --mode quick    # Quick (20 samples)
+!python -m colab.experiment --mode medium  # Medium (100 samples)  
+!python -m colab.experiment --mode full    # Complete (custom)
 
 # Environment setup only
-!python colab/experiment.py --setup
+!python -m colab.experiment --setup
 
 # Skip specific steps
-!python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
-!python colab/experiment.py --mode medium --skip-attention
+!python -m colab.experiment --mode medium --skip-zero-shot --enable-sft
+!python -m colab.experiment --mode medium --skip-attention
 ```
 
 For `full` mode:
@@ -215,7 +229,7 @@ def generate_custom_noisy_dataset():
 The primary script for visualizing attention is `src/attention_visualizer.py`. Run it from the project root directory:
 
 ```bash
-python src/attention_visualizer.py
+python -m src.attention_visualizer
 ```
 
 -   This command will generate visualizations for predefined sample questions within the script.

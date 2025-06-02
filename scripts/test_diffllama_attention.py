@@ -166,6 +166,6 @@ if __name__ == "__main__":
         print("\n❌ Some tests failed. Check error messages above.")
     
     print("\nNext steps:")
-    print("1. Run the full attention visualizer: python src/attention_visualizer.py")
+    print("1. Run the full attention visualizer: python -m src.attention_visualizer")
     print("2. Check results/attention_maps/ for comprehensive analysis.")
     print("3. For DiffLlama, observe the reported lambda parameters in the console output and metadata.") 

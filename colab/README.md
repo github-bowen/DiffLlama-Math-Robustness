@@ -15,10 +15,10 @@ drive.mount('/content/drive')
 !cd DiffLlama-Math-Robustness
 
 # 3. Quick test
-!python colab/experiment.py --mode quick
+!python -m colab.experiment --mode quick
 
 # 4. Medium scale experiment (if quick test succeeds)
-!python colab/experiment.py --mode medium
+!python -m colab.experiment --mode medium
 
 # 5. View results
 import pandas as pd
@@ -29,7 +29,7 @@ print(df.pivot(index='model', columns='dataset', values='accuracy'))
 ### Subsequent Runs (With Cache)
 ```python
 # Run experiment directly (models already in Drive)
-!python colab/experiment.py --mode medium --skip-attention
+!python -m colab.experiment --mode medium --skip-attention
 ```
 
 ## 🎯 Expected Results
@@ -60,19 +60,19 @@ diffllama  0.145   0.123  0.135  0.128
 ### Custom Parameters
 ```bash
 # Limit evaluation samples
-!python colab/experiment.py --mode medium --max-samples 50
+!python -m colab.experiment --mode medium --max-samples 50
 
 # Skip zero-shot evaluation
-!python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
+!python -m colab.experiment --mode medium --skip-zero-shot --enable-sft
 
 # Skip attention analysis
-!python colab/experiment.py --mode full --skip-attention
+!python -m colab.experiment --mode full --skip-attention
 
 # Enable supervised fine-tuning
-!python colab/experiment.py --mode medium --enable-sft --sft-samples 200
+!python -m colab.experiment --mode medium --enable-sft --sft-samples 200
 
 # Run setup only
-!python colab/experiment.py --setup --setup
+!python -m colab.experiment --setup
 ```
 
 ### Manual Module Running
@@ -106,19 +106,19 @@ results = run_comprehensive_evaluation(max_samples_per_dataset=20)
 #### GPU Memory Insufficient
 ```bash
 # Use smaller sample sizes
-!python colab/experiment.py --mode quick --max-samples 10
+!python -m colab.experiment --mode quick --max-samples 10
 ```
 
 #### Model Download Failed
 ```bash
 # Retry setup
-!python colab/experiment.py --setup
+!python -m colab.experiment --setup
 ```
 
 #### Session Timeout
 ```bash
 # Use skip options to reduce runtime
-!python colab/experiment.py --mode medium --skip-attention --skip-zero-shot --enable-sft
+!python -m colab.experiment --mode medium --skip-attention --skip-zero-shot --enable-sft
 ```
 
 ## 🎓 Educational Use
@@ -142,7 +142,7 @@ This experiment framework is especially suitable for:
 **Need help?** 
 
 - 📖 Check main README.md for experiment background
-- 🔧 Run `!python colab/experiment.py --help` to see all options
+- 🔧 Run `!python -m colab.experiment --help` to see all options
 - 💬 Check detailed notes and instructions in the Notebook
 
 **Good luck with your experiment!** 🎉 

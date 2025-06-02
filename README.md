@@ -69,21 +69,21 @@ Noisy: "A delicious pizza with cheese and pepperoni is cut into 8 equal slices. 
 - **Purpose**: Verify environment configuration and code correctness
 - **Sample Count**: 20 per dataset
 - **Runtime**: 30-60 minutes
-- **Command**: `python main.py --quick-test`
+- **Command**: `python -m main --quick-test`
 
 #### 2. Standard Mode
 
 - **Purpose**: Balanced experimental results
 - **Sample Count**: 200 per dataset (customizable)
 - **Runtime**: 2-4 hours
-- **Command**: `python main.py`
+- **Command**: `python -m main`
 
 #### 3. Full Mode
 
 - **Purpose**: Complete research results
 - **Sample Count**: All data (~1300 samples)
 - **Runtime**: 6-12 hours
-- **Command**: `python main.py --max-samples -1`
+- **Command**: `python -m main --max-samples -1`
 
 ## 📊 Dataset Description
 

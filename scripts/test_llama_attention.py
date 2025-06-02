@@ -99,5 +99,5 @@ if __name__ == "__main__":
         print("\n❌ Llama attention analysis test failed. Check error messages above.")
     
     print("\nNext steps:")
-    print("1. Run the full attention visualizer: python src/attention_visualizer.py")
+    print("1. Run the full attention visualizer: python -m src.attention_visualizer")
     print("2. Check results/attention_maps/ for comprehensive analysis.") 
