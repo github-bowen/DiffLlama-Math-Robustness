@@ -1,6 +1,9 @@
-*.jsonl
-cache/
 __pycache__/
 .ipynb_checkpoints/
 .vscode/
+
+
 models_finetuned/
+results/
+*.jsonl
+cache/
