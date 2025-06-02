@@ -65,7 +65,7 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
                    output_dir_base="./models_finetuned", 
                    max_samples=1000,
                    num_epochs=3,
-                   batch_size=4,
+                   batch_size=2,
                    learning_rate=2e-5):
     """
     Fine-tune a model on GSM8K training data.
@@ -131,7 +131,7 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
         learning_rate=learning_rate,
         weight_decay=0.01,
         logging_steps=10,
-        save_steps=934,  # train_dataset.length / effective batch_size = 7473 / 8
+        save_steps=1868,  # train_dataset.length / effective batch_size = 7473 / 4
         save_total_limit=2,
         prediction_loss_only=True,
         remove_unused_columns=False,

@@ -109,6 +109,12 @@ python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1 --skip-zero-sho
 python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1
 ```
 
+SFT on all samples:
+```bash
+## SFT + Attention Analysis
+python -m main --max-samples 50 --sft-samples 7473 --sft-epochs 1 --skip-zero-shot
+```
+
 #### Colab Experiment Script (`colab/experiment.py`)
 
 ```bash
