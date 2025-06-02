@@ -92,6 +92,9 @@ python main.py --max-samples 100
 # Skip time-consuming fine-tuning step
 python main.py --skip-sft
 
+# Skip zero-shot evaluation step
+python main.py --skip-zero-shot
+
 # Test specific model only
 python main.py --models diffllama
 

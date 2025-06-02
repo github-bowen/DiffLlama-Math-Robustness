@@ -222,7 +222,7 @@ def run_colab_experiment(mode="quick", max_samples=None, skip_sft=True, skip_att
         
         if not skip_zero_shot:
             from src.evaluation import run_comprehensive_evaluation, compare_model_performance, run_evaluation
-        elif not skip_sft:
+        if not skip_sft:
             from src.evaluation import run_evaluation
         
         if not skip_sft:

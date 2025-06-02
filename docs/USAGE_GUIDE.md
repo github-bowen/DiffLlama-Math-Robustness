@@ -45,7 +45,7 @@ python main.py [OPTIONS]
 - `--quick-test`: Run quick test (20 samples)
 - `--max-samples N`: Limit maximum number of samples per dataset
 - `--skip-data-gen`: Skip data generation (use existing data)
-- `--skip-evaluation`: Skip zero-shot evaluation
+- `--skip-zero-shot`: Skip zero-shot evaluation
 - `--skip-sft`: Skip supervised fine-tuning
 - `--skip-attention`: Skip attention analysis
 - `--models MODEL1,MODEL2`: Specify models to test (default: diffllama,llama)
@@ -59,6 +59,9 @@ python main.py
 
 # Custom sample count
 python main.py --max-samples 100
+
+# Skip zero-shot evaluation step
+python main.py --skip-zero-shot
 
 # Skip time-consuming fine-tuning step
 python main.py --skip-sft
