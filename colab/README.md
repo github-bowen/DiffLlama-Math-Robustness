@@ -15,10 +15,10 @@ drive.mount('/content/drive')
 !cd DiffLlama-Math-Robustness
 
 # 3. Quick test
-!python colab/experiment.py --mode quick --use-drive
+!python colab/experiment.py --mode quick
 
 # 4. Medium scale experiment (if quick test succeeds)
-!python colab/experiment.py --mode medium --use-drive
+!python colab/experiment.py --mode medium
 
 # 5. View results
 import pandas as pd
@@ -29,7 +29,7 @@ print(df.pivot(index='model', columns='dataset', values='accuracy'))
 ### Subsequent Runs (With Cache)
 ```python
 # Run experiment directly (models already in Drive)
-!python colab/experiment.py --mode medium --use-drive --skip-attention
+!python colab/experiment.py --mode medium --skip-attention
 ```
 
 ## 🎯 Expected Results
@@ -62,11 +62,17 @@ diffllama  0.145   0.123  0.135  0.128
 # Limit evaluation samples
 !python colab/experiment.py --mode medium --max-samples 50
 
+# Skip zero-shot evaluation
+!python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
+
 # Skip attention analysis
 !python colab/experiment.py --mode full --skip-attention
 
-# Run specific parts only
-!python colab/experiment.py --setup  # Setup only
+# Enable supervised fine-tuning
+!python colab/experiment.py --mode medium --enable-sft --sft-samples 200
+
+# Run setup only
+!python colab/experiment.py --setup --setup
 ```
 
 ### Manual Module Running
@@ -89,7 +95,31 @@ results = run_comprehensive_evaluation(max_samples_per_dataset=20)
 2. **Use Google Drive**: Ensure data and results persistence
 3. **Monitor runtime**: Colab has time limits, save progress regularly
 4. **Check memory regularly**: Avoid crashes due to memory overflow
-5. **Backup important results**: Download key results locally
+5. **Download important results**: Save key results locally before session ends
+6. **Use skip options**: Use `--skip-zero-shot` or `--skip-attention` to save time
+7. **Start with small samples**: Use `--max-samples` to test with smaller datasets first
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### GPU Memory Insufficient
+```bash
+# Use smaller sample sizes
+!python colab/experiment.py --mode quick --max-samples 10
+```
+
+#### Model Download Failed
+```bash
+# Retry setup
+!python colab/experiment.py --setup
+```
+
+#### Session Timeout
+```bash
+# Use skip options to reduce runtime
+!python colab/experiment.py --mode medium --skip-attention --skip-zero-shot --enable-sft
+```
 
 ## 🎓 Educational Use
 
@@ -98,6 +128,14 @@ This experiment framework is especially suitable for:
 - **Research projects**: Explore the role of attention mechanisms
 - **Technical demonstrations**: Show the impact of noise on NLP models
 - **Learning practice**: Understand modern Transformer models
+
+## ⏱️ Runtime Estimates
+
+- **Quick mode**: ~15-30 minutes
+- **Medium mode**: ~1-2 hours  
+- **Full mode**: ~3-6 hours
+- **With SFT**: +30-60 minutes
+- **Skip zero-shot**: Saves ~30-50% time
 
 ---
 

@@ -79,7 +79,12 @@ python colab/experiment.py [OPTIONS]
 **Colab-Specific Options:**
 
 - `--mode {quick,medium,full}`: Experiment mode
-- `--use-drive`: Use Google Drive for persistent storage
+- `--max-samples N`: Limit number of evaluation samples
+- `--enable-sft`: Enable supervised fine-tuning (disabled by default)
+- `--sft-samples N`: Number of samples for fine-tuning
+- `--sft-epochs N`: Number of epochs for fine-tuning
+- `--skip-zero-shot`: Skip zero-shot evaluation to save time
+- `--skip-attention`: Skip attention analysis to save time
 - `--setup`: Only perform environment setup
 - `--instructions`: Show usage instructions
 
@@ -87,10 +92,19 @@ python colab/experiment.py [OPTIONS]
 
 ```bash
 # Colab quick test
-python colab/experiment.py --mode quick --use-drive
+python colab/experiment.py --mode quick
 
-# Colab full experiment
-python colab/experiment.py --mode full --use-drive --max-samples 500
+# Colab medium experiment
+python colab/experiment.py --mode medium --max-samples 100
+
+# Colab experiment with SFT
+python colab/experiment.py --mode medium --enable-sft --sft-samples 200
+
+# Skip zero-shot evaluation
+python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
+
+# Environment setup only
+python colab/experiment.py --setup
 ```
 
 ### Experiment Modes

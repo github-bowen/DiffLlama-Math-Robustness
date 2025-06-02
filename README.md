@@ -110,11 +110,12 @@ python main.py --skip-attention
 !python colab/experiment.py --mode medium  # Medium (100 samples)  
 !python colab/experiment.py --mode full    # Complete (custom)
 
-# Google Drive integration
-!python colab/experiment.py --use-drive    # Persistent storage
-
 # Environment setup only
 !python colab/experiment.py --setup
+
+# Skip specific steps
+!python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
+!python colab/experiment.py --mode medium --skip-attention
 ```
 
 ## 📈 Result Analysis
