@@ -14,10 +14,15 @@ Usage:
 """
 
 import os
+import sys
 import argparse
 import time
 import json
 from datetime import datetime
+
+# Add the current directory to Python path to enable imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
 
 # Import our modules
 from src.utils import download_gsm8k
@@ -441,4 +446,4 @@ Examples:
         print(f"\n⏱️  Total runtime: {total_time//3600:.0f}h {(total_time%3600)//60:.0f}m {total_time%60:.0f}s")
 
 if __name__ == "__main__":
-    main() 
+    main()
