@@ -294,8 +294,8 @@ if __name__ == "__main__":
         for f in missing_files:
             print(f"  - {f}")
         print("\nPlease ensure GSM8K data is downloaded and noisy datasets are generated.")
-        print("Run: python src/utils.py  # for data download")
-        print("Run: python src/noise_injection.py  # for noisy datasets")
+        print("Run: python -m src.utils  # for data download")
+        print("Run: python -m src.noise_injection  # for noisy datasets")
     else:
         # Run comprehensive evaluation
         print("Running comprehensive evaluation...")

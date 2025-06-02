@@ -143,7 +143,7 @@ def test_model_availability():
     if missing_models:
         print(f"\n⚠️  Missing {len(missing_models)} models")
         print("Run the following command to download models:")
-        print("python scripts/download_models.py")
+        print("python -m scripts.download_models")
         return False
     
     return True

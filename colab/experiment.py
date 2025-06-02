@@ -9,8 +9,8 @@ This script is specifically designed for Google Colab environment with:
 - Simplified interface for notebook execution
 
 Usage in Colab:
-    !python colab/experiment.py --mode quick
-    !python colab/experiment.py --mode full
+    !python -m colab.experiment --mode quick
+    !python -m colab.experiment --mode full
 """
 
 import os
@@ -605,25 +605,25 @@ def display_colab_instructions():
 🎯 GOOGLE COLAB USAGE INSTRUCTIONS
 
 1. 📱 Basic Setup (Run once):
-   !python colab/experiment.py --setup
+   !python -m colab.experiment --setup
 
 2. 🚀 Quick Test (Recommended first run):
-   !python colab/experiment.py --mode quick
+   !python -m colab.experiment --mode quick
 
 3. 📊 Medium Experiment:
-   !python colab/experiment.py --mode medium
+   !python -m colab.experiment --mode medium
 
 4. 🔬 Full Experiment:
-   !python colab/experiment.py --mode full --max-samples 500
+   !python -m colab.experiment --mode full --max-samples 500
 
 5. 🎯 Experiment with Fine-tuning:
-   !python colab/experiment.py --mode medium --enable-sft --sft-samples 200
+   !python -m colab.experiment --mode medium --enable-sft --sft-samples 200
 
 6. 🔄 Skip Zero-shot (only SFT and attention):
-   !python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
+   !python -m colab.experiment --mode medium --skip-zero-shot --enable-sft
 
 7. 📈 Only Fine-tuning workflow:
-   !python colab/experiment.py --mode medium --skip-zero-shot --enable-sft --skip-attention
+   !python -m colab.experiment --mode medium --skip-zero-shot --enable-sft --skip-attention
 
 🔧 Options:
    --mode: quick/medium/full (experiment scope)
@@ -668,11 +668,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python colab/experiment.py --mode quick
-    python colab/experiment.py --mode medium --enable-sft
-    python colab/experiment.py --mode full --max-samples 300
-    python colab/experiment.py --mode medium --skip-zero-shot --enable-sft
-    python colab/experiment.py --setup
+    python -m colab.experiment --mode quick
+    python -m colab.experiment --mode medium --enable-sft
+    python -m colab.experiment --mode full --max-samples 300
+    python -m colab.experiment --mode medium --skip-zero-shot --enable-sft
+    python -m colab.experiment --setup
         """
     )
     
