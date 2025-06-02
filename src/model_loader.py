@@ -38,12 +38,20 @@ def load_model_and_tokenizer(model_type, device=None, for_training=False):
     )
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     
+    print(f"Tokenizer loaded. EOS token: '{tokenizer.eos_token}', ID: {tokenizer.eos_token_id}")
+    print(f"Tokenizer BOS token: '{tokenizer.bos_token}', ID: {tokenizer.bos_token_id}")
+    print(f"Tokenizer UNK token: '{tokenizer.unk_token}', ID: {tokenizer.unk_token_id}")
+    print(f"Tokenizer PAD token before setting: '{tokenizer.pad_token}', ID: {tokenizer.pad_token_id}")
+
     if not for_training:
         model.eval()  # Set to evaluation mode
     
     # Set pad token if not available
     if tokenizer.pad_token is None:
+        print("PAD token is None. Setting PAD token to EOS token.")
         tokenizer.pad_token = tokenizer.eos_token
+    
+    print(f"Tokenizer PAD token after setting: '{tokenizer.pad_token}', ID: {tokenizer.pad_token_id}")
 
     print(f"{model_type} loaded on {device}.")
     return model, tokenizer
@@ -75,11 +83,19 @@ def load_model_from_path(model_path, device=None, for_training=False):
     )
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     
+    print(f"Tokenizer loaded. EOS token: '{tokenizer.eos_token}', ID: {tokenizer.eos_token_id}")
+    print(f"Tokenizer BOS token: '{tokenizer.bos_token}', ID: {tokenizer.bos_token_id}")
+    print(f"Tokenizer UNK token: '{tokenizer.unk_token}', ID: {tokenizer.unk_token_id}")
+    print(f"Tokenizer PAD token before setting (from path): '{tokenizer.pad_token}', ID: {tokenizer.pad_token_id}")
+    
     if not for_training:
         model.eval()
     
     if tokenizer.pad_token is None:
+        print("PAD token is None when loading from path. Setting PAD token to EOS token.")
         tokenizer.pad_token = tokenizer.eos_token
+    
+    print(f"Tokenizer PAD token after setting (from path): '{tokenizer.pad_token}', ID: {tokenizer.pad_token_id}")
     
     print(f"Model loaded from {model_path} on {device}.")
     return model, tokenizer
