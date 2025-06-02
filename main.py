@@ -412,6 +412,12 @@ Examples:
         if not args.skip_sft:
             sft_model_paths = step_3_supervised_fine_tuning(sft_samples, sft_epochs)
             
+            # FIXME: debug only
+            # sft_model_paths = {
+            #     "llama": "models_finetuned/llama_sft", 
+            #     "diffllama": "models_finetuned/diffllama_sft"
+            # }
+            
             # Step 4: Post-SFT Evaluation
             if sft_model_paths:
                 sft_results = step_4_post_sft_evaluation(sft_model_paths, eval_samples)

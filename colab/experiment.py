@@ -48,17 +48,21 @@ def mount_google_drive():
 
 def setup_colab_environment():
     # Setup directories
+    os.makedirs("models_finetuned", exist_ok=True)
+    
     # Use Google Drive for persistent storage
     base_dir = "/content/drive/MyDrive/DiffLlama_Experiment"
     models_dir = f"{base_dir}/models"
     data_dir = f"{base_dir}/data"
     results_dir = f"{base_dir}/results"
+    models_finetuned_dir = f"{base_dir}/models_finetuned"
     
     # Create symlinks to local workspace
     local_dirs = {
         "cache": models_dir,
         "data": data_dir, 
-        "results": results_dir
+        "results": results_dir,
+        "models_finetuned": models_finetuned_dir
     }
     
     print(f"📁 Using Google Drive storage: {base_dir}")
@@ -80,7 +84,6 @@ def setup_colab_environment():
     
     # Additional Colab setup directories
     os.makedirs("src", exist_ok=True)
-    os.makedirs("models_finetuned", exist_ok=True)
     
     return True
 
