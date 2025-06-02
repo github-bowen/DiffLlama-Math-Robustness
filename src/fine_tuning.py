@@ -64,7 +64,7 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
                    output_dir_base="./models_finetuned", 
                    max_samples=1000,
                    num_epochs=3,
-                   batch_size=4,
+                   batch_size=8,
                    learning_rate=2e-5):
     """
     Fine-tune a model on GSM8K training data.
@@ -126,7 +126,7 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
         overwrite_output_dir=True,
         num_train_epochs=num_epochs,
         per_device_train_batch_size=batch_size,
-        gradient_accumulation_steps=4,  # Effective batch size = batch_size * 4
+        gradient_accumulation_steps=2,  # Effective batch size = batch_size * 2
         learning_rate=learning_rate,
         weight_decay=0.01,
         logging_steps=10,
@@ -265,7 +265,7 @@ def run_full_sft_pipeline(max_train_samples=500, num_epochs=2):
                 train_file=sft_train_file,
                 max_samples=max_train_samples,
                 num_epochs=num_epochs,
-                batch_size=2,  # Small batch size for memory efficiency
+                batch_size=8,  # Small batch size for memory efficiency
                 learning_rate=5e-5
             )
             
