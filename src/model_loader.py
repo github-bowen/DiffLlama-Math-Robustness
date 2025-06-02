@@ -33,7 +33,7 @@ def load_model_and_tokenizer(model_type, device=None, for_training=False):
     # Load model and tokenizer
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        torch_dtype=torch.float32,  # TODO: Set to float32
         device_map=device
     )
     tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -78,7 +78,7 @@ def load_model_from_path(model_path, device=None, for_training=False):
     
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        torch_dtype=torch.float32,  # TODO: Set to float32
         device_map=device
     )
     tokenizer = AutoTokenizer.from_pretrained(model_path)
