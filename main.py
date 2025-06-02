@@ -56,7 +56,6 @@ def setup_directories():
         "results", 
         "results/attention_maps",
         "models_finetuned",
-        "notebooks"
     ]
     
     for directory in directories:

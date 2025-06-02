@@ -11,7 +11,7 @@ def load_model(model_path, device=None):
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        torch_dtype=torch.float32,  # TODO: Set to float32
         device_map=device
     )
     return model, tokenizer
