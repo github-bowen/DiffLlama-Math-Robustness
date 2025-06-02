@@ -82,10 +82,12 @@ def run_evaluation(model_type, dataset_file, device=None, use_cot=True, max_new_
         true_answer_str = extract_answer_from_solution(item['answer'])
         
         # Create prompt
-        if use_cot:
-            prompt = create_chain_of_thought_prompt(question)
-        else:
-            prompt = f"Question: {question}\nAnswer:"
+        # if use_cot:
+        #     prompt = create_chain_of_thought_prompt(question)
+        # else:
+        #     prompt = f"Question: {question}\nAnswer:"
+        # FIXME: disable COT for evaluation
+        prompt = question
         
         # Tokenize input
         try:
