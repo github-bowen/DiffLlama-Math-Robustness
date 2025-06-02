@@ -223,15 +223,16 @@ def test_evaluation_pipeline():
     print("\n🔍 Testing evaluation pipeline...")
     
     try:
-        from src.evaluation import extract_answer, evaluate_answer
+        from src.evaluation import extract_answer_from_generation
         
         # Test answer extraction
         test_response = "Let me think step by step. Lisa has 10 apples and gives away 3, so 10 - 3 = 7. The answer is 7."
-        extracted = extract_answer(test_response)
+        extracted = extract_answer_from_generation(test_response)
         print(f"  Answer extraction test: '{extracted}'")
         
-        # Test answer evaluation
-        correct = evaluate_answer(extracted, "7")
+        # Test answer evaluation (simple string comparison)
+        expected_answer = "7"
+        correct = (extracted == expected_answer)
         print(f"  Answer evaluation test: {correct}")
         
         if correct:
@@ -351,4 +352,4 @@ if __name__ == "__main__":
     else:
         success = run_comprehensive_test()
     
-    sys.exit(0 if success else 1) 
+    sys.exit(0 if success else 1)

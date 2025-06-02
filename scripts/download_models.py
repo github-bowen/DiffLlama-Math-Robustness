@@ -11,6 +11,7 @@ import sys
 from contextlib import redirect_stdout, redirect_stderr
 from io import StringIO
 from huggingface_hub import snapshot_download
+import argparse
 
 def download_models(quiet=True):
     """Download models required for experiments
@@ -70,4 +71,12 @@ def download_models(quiet=True):
         return False
 
 if __name__ == "__main__":
-    download_models()
+    parser = argparse.ArgumentParser(description="Download models for experiments.")
+    parser.add_argument(
+        "--quiet", 
+        action="store_true", 
+        help="Suppress output during model download"
+    )
+    args = parser.parse_args()
+    # Call the download function with quiet mode if specified
+    download_models(quiet=args.quiet)
