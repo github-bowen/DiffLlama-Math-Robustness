@@ -209,20 +209,24 @@ def step_4_post_sft_evaluation(sft_model_paths, max_samples=None):
     
     return sft_results
 
-def step_5_attention_analysis(quick_test=False):
+def step_5_attention_analysis(quick_test=False, sft_model_paths=None):
     """Step 5: Attention visualization and quantification."""
     print("\n" + "="*80)
     print("STEP 5: ATTENTION VISUALIZATION & ANALYSIS")
     print("="*80)
+    
+    use_sft = sft_model_paths and len(sft_model_paths) > 0
+    model_suffix = " (with fine-tuned models)" if use_sft else " (with default models)"
+    print(f"Running attention analysis{model_suffix}...")
     
     # Create output directory
     os.makedirs("results/attention_maps", exist_ok=True)
     
     # Sample questions for visualization
     sample_questions = [
-        "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. How many eggs does she sell at the farmers' market every day?",
-        "A robe takes 2 bolts of blue fiber and half that much white fiber. How many bolts in total does it take?",
-        "Josh decides to try flipping a house. He buys a house for $80,000 and then puts in $50,000 in repairs. This increased the value of the house by 150%. How much profit did he make?"
+        "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?",
+        "Weng earns $12 an hour for babysitting. Yesterday, she just did 50 minutes of babysitting. How much did she earn?",
+        "Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?"
     ]
     
     print("Creating attention visualizations...")
@@ -232,28 +236,43 @@ def step_5_attention_analysis(quick_test=False):
         print(f"\nVisualizing question {i+1}...")
         
         try:
-            # Clean question visualizations
-            visualize_sample_attention(
-                "llama", question, 
-                save_dir=f"results/attention_maps/clean_q{i+1}"
-            )
-            visualize_sample_attention(
-                "diffllama", question,
-                save_dir=f"results/attention_maps/clean_q{i+1}"
-            )
+            # Clean question visualizations for both models
+            for model_type in ["llama", "diffllama"]:
+                model_path = None
+                if use_sft and model_type in sft_model_paths:
+                    model_path = sft_model_paths[model_type]
+                    print(f"  Using fine-tuned {model_type} model: {model_path}")
+                else:
+                    print(f"  Using default {model_type} model")
+                
+                save_subdir = f"results/attention_maps/clean_q{i+1}"
+                if use_sft and model_path:
+                    save_subdir = f"results/attention_maps/clean_q{i+1}_sft"
+                
+                visualize_sample_attention(
+                    model_type, question, 
+                    save_dir=save_subdir,
+                    model_path=model_path
+                )
             
             # Noisy question visualizations
             from src.noise_injection import inject_inf_noise
             noisy_question = inject_inf_noise(question)
             
-            visualize_sample_attention(
-                "llama", noisy_question,
-                save_dir=f"results/attention_maps/noisy_q{i+1}"
-            )
-            visualize_sample_attention(
-                "diffllama", noisy_question,
-                save_dir=f"results/attention_maps/noisy_q{i+1}"
-            )
+            for model_type in ["llama", "diffllama"]:
+                model_path = None
+                if use_sft and model_type in sft_model_paths:
+                    model_path = sft_model_paths[model_type]
+                
+                save_subdir = f"results/attention_maps/noisy_q{i+1}"
+                if use_sft and model_path:
+                    save_subdir = f"results/attention_maps/noisy_q{i+1}_sft"
+                
+                visualize_sample_attention(
+                    model_type, noisy_question,
+                    save_dir=save_subdir,
+                    model_path=model_path
+                )
             
         except Exception as e:
             print(f"Error in attention visualization: {e}")
@@ -266,14 +285,16 @@ def step_5_attention_analysis(quick_test=False):
             attention_results = compare_attention_patterns(
                 clean_dataset="data/gsm8k_test.jsonl",
                 noisy_dataset="data/gsm8k_inf_test.jsonl",
-                num_samples=num_samples
+                num_samples=num_samples,
+                sft_model_paths=sft_model_paths
             )
             
             # Save attention analysis results
-            with open("results/attention_analysis.json", "w") as f:
+            result_filename = "attention_analysis_sft.json" if use_sft else "attention_analysis.json"
+            with open(f"results/{result_filename}", "w") as f:
                 json.dump(attention_results, f, indent=2)
             
-            print("✓ Attention analysis completed")
+            print(f"✓ Attention analysis completed, results saved to results/{result_filename}")
             
         except Exception as e:
             print(f"Error in attention analysis: {e}")
@@ -426,7 +447,7 @@ Examples:
         
         # Step 5: Attention Analysis (optional)
         if not args.skip_attention:
-            step_5_attention_analysis(quick_test=args.quick_test)
+            step_5_attention_analysis(quick_test=args.quick_test, sft_model_paths=sft_model_paths)
         else:
             print("\n⏭️  Skipping attention analysis")
         

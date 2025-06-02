@@ -153,6 +153,9 @@ For `full` mode:
 ## SFT only
 !python -m colab.experiment --mode full --skip-zero-shot --enable-sft --skip-attention
 
+## Attention Analysis only
+!python -m colab.experiment --mode full --skip-zero-shot
+
 ## Evaluation + SFT
 !python -m colab.experiment --mode full --enable-sft --skip-attention
 
