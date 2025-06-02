@@ -409,7 +409,7 @@ def main():
     if args.setup:
         # Environment setup
         install_dependencies()
-        drive_mounted = setup_colab_environment(args.use_drive)
+        setup_colab_environment(args.use_drive)
         print("✅ Setup completed")
         return 0
     
@@ -438,8 +438,7 @@ def main():
     
     if success:
         print("\n🎊 Experiment completed successfully!")
-        if drive_mounted:
-            print("💾 Results saved to Google Drive for persistence")
+        print("💾 Results saved to Google Drive for persistence")
         return 0
     else:
         print("\n❌ Experiment failed")
