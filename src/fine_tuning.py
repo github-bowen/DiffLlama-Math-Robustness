@@ -12,13 +12,14 @@ import json
 from src.model_loader import load_model_and_tokenizer, get_model_paths
 from src.utils import load_jsonl
 
-def prepare_training_data(train_file="data/gsm8k_train.jsonl", max_samples=1000):
+def prepare_training_data(train_file="data/gsm8k_train.jsonl", max_samples=1000, eos_token_str="<|eot_id|>"):
     """
     Prepare training data in the format needed for language model fine-tuning.
     
     Args:
         train_file: path to training JSONL file
         max_samples: maximum number of samples to use for training
+        eos_token_str: The end-of-sequence token string to append.
     
     Returns:
         list of formatted training examples
@@ -43,7 +44,7 @@ def prepare_training_data(train_file="data/gsm8k_train.jsonl", max_samples=1000)
         
         # Format as instruction-following format
         # The model should learn to generate the complete solution
-        text = f"Question: {question}\n\nAnswer: {answer}<|endoftext|>"
+        text = f"Question: {question}\n\nAnswer: {answer}{eos_token_str}"
         
         formatted_examples.append({"text": text})
     
@@ -98,7 +99,7 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
     model, tokenizer = load_model_and_tokenizer(model_type, device, for_training=True)
     
     # Prepare training data
-    training_examples = prepare_training_data(train_file, max_samples)
+    training_examples = prepare_training_data(train_file, max_samples, eos_token_str=tokenizer.eos_token)
     if not training_examples:
         print("No training data available. Skipping fine-tuning.")
         return None
