@@ -65,7 +65,7 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
                    max_samples=1000,
                    num_epochs=3,
                    batch_size=4,
-                   learning_rate=5e-5):
+                   learning_rate=2e-5):
     """
     Fine-tune a model on GSM8K training data.
     
@@ -134,13 +134,11 @@ def fine_tune_model(model_type, train_file="data/gsm8k_train.jsonl",
         save_total_limit=2,
         prediction_loss_only=True,
         remove_unused_columns=False,
-        fp16=torch.cuda.is_available(),  # Use mixed precision if on GPU
+        fp16=False,  # Disable FP16
+        max_grad_norm=1.0,  # Add gradient clipping
         dataloader_pin_memory=False,
         report_to="none",  # Disable wandb/tensorboard
-        # Add early stopping and evaluation if validation set is available
-        # evaluation_strategy="steps",
-        # eval_steps=100,
-        # load_best_model_at_end=True,
+        optim="adamw_torch",  # Explicitly set optimizer
     )
     
     # Initialize trainer
