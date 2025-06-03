@@ -4,7 +4,14 @@ import os
 
 # Global variables for model paths (from the download script)
 DIFFLAMA_PATH = "./cache/models--reyllama--DiffLlama-375M/snapshots/8960f22033190f1560537f4932fe649828ef53e2/checkpoint-64434"
+# DIFFLAMA_PATH = "./cache/models--Salesforce--E1-Math-1.5B/snapshots/3fa7501acb8aec762347e70be9a04a6324c886fc"
+# DIFFLAMA_PATH = "./cache/models--AquaLabs--Llama-3.2-1B-GSM8K/snapshots/92a51429bb995438fbc4d3a32774b6e646241eab"
+# DIFFLAMA_PATH = "./models_finetuned/diffllama_sft/samples-2000"
+
 LLAMA_PATH = "./cache/models--reyllama--Llama_375M/snapshots/416b70824d560b02245268c208ffd5388b4aa056/checkpoint-64434"
+# LLAMA_PATH = "./cache/models--Salesforce--E1-Math-1.5B/snapshots/3fa7501acb8aec762347e70be9a04a6324c886fc"
+# LLAMA_PATH = "./cache/models--AquaLabs--Llama-3.2-1B-GSM8K/snapshots/92a51429bb995438fbc4d3a32774b6e646241eab"
+# LLAMA_PATH = "./models_finetuned/llama_sft/samples-2000"
 
 def load_model_and_tokenizer(model_type, device=None, for_training=False):
     """

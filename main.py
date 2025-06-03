@@ -225,13 +225,18 @@ def step_5_attention_analysis(quick_test=False, sft_model_paths=None):
     sample_questions = [
         "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?",
         "Weng earns $12 an hour for babysitting. Yesterday, she just did 50 minutes of babysitting. How much did she earn?",
-        "Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?"
+        "Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?",
+        "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. How many eggs does she sell at the farmers' market every day?",
+        "A robe takes 2 bolts of blue fiber and half that much white fiber. How many bolts in total does it take?",
+        "Julie is reading a 120-page book. Yesterday, she was able to read 12 pages and today, she read twice as many pages as yesterday. If she wants to read half of the remaining pages tomorrow, how many pages should she read?",
+        "Ken created a care package to send to his brother, who was away at boarding school.  Ken placed a box on a scale, and then he poured into the box enough jelly beans to bring the weight to 2 pounds.  Then, he added enough brownies to cause the weight to triple.  Next, he added another 2 pounds of jelly beans.  And finally, he added enough gummy worms to double the weight once again.  What was the final weight of the box of goodies, in pounds?",
+        "Randy has 60 mango trees on his farm. He also has 5 less than half as many coconut trees as mango trees. How many trees does Randy have in all on his farm?",
     ]
     
-    print("Creating attention visualizations...")
+    print(f"Creating attention visualizations for {len(sample_questions)} sample questions...")
     
     # Visualize attention for sample questions
-    for i, question in enumerate(sample_questions[:2 if quick_test else 3]):
+    for i, question in enumerate(sample_questions):
         print(f"\nVisualizing question {i+1}...")
         
         try:
@@ -255,48 +260,66 @@ def step_5_attention_analysis(quick_test=False, sft_model_paths=None):
                 )
             
             # Noisy question visualizations
-            from src.noise_injection import inject_inf_noise
-            noisy_question = inject_inf_noise(question)
-            
-            for model_type in ["llama", "diffllama"]:
-                model_path = None
-                if use_sft and model_type in sft_model_paths:
-                    model_path = sft_model_paths[model_type]
-                
-                save_subdir = f"results/attention_maps/noisy_q{i+1}"
-                if use_sft and model_path:
-                    save_subdir = f"results/attention_maps/noisy_q{i+1}_sft"
-                
-                visualize_sample_attention(
-                    model_type, noisy_question,
-                    save_dir=save_subdir,
-                    model_path=model_path
-                )
+            from src.noise_injection import inject_inf_noise, inject_rcs_noise, inject_sd_noise
+            inf_noise_question = inject_inf_noise(question)
+            rcs_noise_question = inject_rcs_noise(question)
+            sd_noise_question = inject_sd_noise(question)
+
+            noisy_questions = {
+                "INF": inf_noise_question,
+                "RCS": rcs_noise_question,
+                "SD": sd_noise_question
+            }
+
+
+            for noise_type, noisy_question in noisy_questions.items():
+                print(f"  Visualizing {noise_type} noise for question {i+1}...")
+                for model_type in ["llama", "diffllama"]:
+                    model_path = None
+                    if use_sft and model_type in sft_model_paths:
+                        model_path = sft_model_paths[model_type]
+                    
+                    save_subdir = f"results/attention_maps/{noise_type}_noise_q{i+1}"
+                    if use_sft and model_path:
+                        save_subdir = f"results/attention_maps/{noise_type}_noise_q{i+1}_sft"
+                    
+                    visualize_sample_attention(
+                        model_type, noisy_question,
+                        save_dir=save_subdir,
+                        model_path=model_path
+                    )
             
         except Exception as e:
             print(f"Error in attention visualization: {e}")
     
     # Quantitative attention analysis
-    if os.path.exists("data/gsm8k_inf_test.jsonl"):
-        print("\nRunning quantitative attention analysis...")
-        try:
-            num_samples = 5 if quick_test else 20
-            attention_results = compare_attention_patterns(
-                clean_dataset="data/gsm8k_test.jsonl",
-                noisy_dataset="data/gsm8k_inf_test.jsonl",
-                num_samples=num_samples,
-                sft_model_paths=sft_model_paths
-            )
-            
-            # Save attention analysis results
-            result_filename = "attention_analysis_sft.json" if use_sft else "attention_analysis.json"
-            with open(f"results/{result_filename}", "w") as f:
-                json.dump(attention_results, f, indent=2)
-            
-            print(f"✓ Attention analysis completed, results saved to results/{result_filename}")
-            
-        except Exception as e:
-            print(f"Error in attention analysis: {e}")
+    noise_types = ["inf", "rcs", "sd"]
+    all_attention_results = {}
+    for noise_type in noise_types:
+        noisy_test_file = f"data/gsm8k_{noise_type}_test.jsonl"
+        if os.path.exists(noisy_test_file):
+            print(f"\nRunning quantitative attention analysis for noise type: {noise_type.upper()}...")
+            try:
+                num_samples = 5 if quick_test else 20
+                attention_results = compare_attention_patterns(
+                    clean_dataset="data/gsm8k_test.jsonl",
+                    noisy_dataset=noisy_test_file,
+                    num_samples=num_samples,
+                    sft_model_paths=sft_model_paths
+                )
+                
+                all_attention_results[noise_type] = attention_results
+                print(f"✓ Attention analysis for {noise_type.upper()} noise completed")
+                
+            except Exception as e:
+                print(f"Error in attention analysis: {e}")
+
+    # Save attention analysis results
+    result_filename = "attention_analysis_sft.json" if use_sft else "attention_analysis.json"
+    with open(f"results/{result_filename}", "w") as f:
+        json.dump(all_attention_results, f, indent=2)
+    
+    print(f"✓ Attention analysis completed, results saved to results/{result_filename}")
     
     print("✓ Attention visualization and analysis completed")
 
@@ -446,6 +469,11 @@ Examples:
         
         # Step 5: Attention Analysis (optional)
         if not args.skip_attention:
+            # FIXME: debug only
+            # sft_model_paths = {
+            #     "llama": "models_finetuned/llama_sft/samples-2000", 
+            #     "diffllama": "models_finetuned/diffllama_sft/samples-2000"
+            # }
             step_5_attention_analysis(quick_test=args.quick_test, sft_model_paths=sft_model_paths)
         else:
             print("\n⏭️  Skipping attention analysis")

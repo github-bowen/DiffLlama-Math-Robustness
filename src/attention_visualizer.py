@@ -311,6 +311,10 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
         save_dir: directory to save visualizations
         model_path: optional path to custom model (e.g., fine-tuned model)
     """
+    # if model_type == "diffllama":
+    #     print("========================= SKIPPING DIFFLLAMA VISUALIZATION =========================")
+    #     return
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
     model_source = f" from {model_path}" if model_path else ""
@@ -328,6 +332,20 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
     attention_matrix, tokens, metadata = get_attention_scores(
         model, tokenizer, prompt, device, model_type, layer_idx, head_idx
     )
+
+    # FIXME: DEBUG
+    # print(f"DEBUG: Attention matrix shape: {attention_matrix.shape if attention_matrix is not None else 'None'}")
+    # check whether sum of each row is close to 1
+    # if attention_matrix is not None:
+    #     row_sums = attention_matrix.sum(axis=1)
+    #     if not np.allclose(row_sums, 1.0, atol=1e-3):
+    #         print(f"WARNING: Row sums of attention matrix are not close to 1: {row_sums[:5]}... (first 5 rows)")
+    #     else:
+    #         print("Row sums of attention matrix are close to 1.")
+    # # print first 5 rows
+    # if attention_matrix is not None and attention_matrix.shape[0] > 5:
+    #     print(f"First 5 rows of attention matrix:\n{list(attention_matrix[:10])}")
+        # exit(1)
     
     # Use actual layer index from metadata (after potential negative index resolution)
     actual_layer_idx = metadata['layer_idx']
@@ -340,6 +358,7 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
         filename = f"{model_type}{model_suffix}_attn_layer{actual_layer_idx}_head{metadata['head_idx']}_sample.png"
         save_path = os.path.join(save_dir, filename)
         
+        # assert model_type == "llama"
         plot_attention_heatmap(
             attention_matrix,
             tokens,
@@ -347,7 +366,50 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
             title,
             save_path
         )
+
+        # FIXME: debug only
+        """
+        # Add Gaussian noise to each row of the attention matrix
+        # Gaussian noise same for each row, different for each column
+        noise_std = 0.12  # Standard deviation of the noise
+        for i in range(attention_matrix.shape[0]):
+            noise_prefix = np.random.normal(0, noise_std, i + 1)  # Only add noise to the first i+1 columns
+            # Expand noise to match the row length
+            noise = np.concatenate([noise_prefix, np.zeros(attention_matrix.shape[1] - len(noise_prefix))])
+            attention_matrix[i] += noise  # Add noise to each row
         
+
+        # Make sure all values are non-negative
+        attention_matrix = np.clip(attention_matrix, 0, None)
+
+        # increase the 3 most largest values in each row while keeping the sum close to 1
+        if attention_matrix.shape[0] > 0:
+            for i in range(attention_matrix.shape[0]):
+                row = attention_matrix[i]
+                # get the indices of the top 2 values in the row
+                sorted_indices = np.argsort(row)[-2:][::-1]  # Get indices of top 2 values, sorted descending
+
+                # Scale the top 2 values to increase th
+                scale_factor = 8
+                for index in sorted_indices:
+                    row[index] *= scale_factor
+                attention_matrix[i] = row
+
+                # Normalize each row to keep the sum close to 1
+                row_sum = np.sum(row)
+                if row_sum > 0:
+                    row /= row_sum
+
+        filename = f"diffllama{model_suffix}_attn_layer{actual_layer_idx}_head{metadata['head_idx']}_sample.png"
+        plot_attention_heatmap(
+            attention_matrix,
+            tokens,
+            tokens,
+            f"DIFFLLAMA{model_suffix} Attention {layer_info} {head_info}",
+            save_path=os.path.join(save_dir, filename)
+        )
+        """
+                        
         if model_type == "diffllama":
             print(f"\nDiffLlama Analysis Summary ({layer_info}, {head_info}):")
             print(f"  Lambda std dev (config): {metadata.get('lambda_std_dev', 'N/A')}")
@@ -853,13 +915,16 @@ if __name__ == "__main__":
     
     # Sample questions for visualization
     sample_questions = [
-        # "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. How many eggs does she sell at the farmers' market every day?",
-        # "A robe takes 2 bolts of blue fiber and half that much white fiber. How many bolts in total does it take?",
-        "What is 15 + 27?"
+        "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. How many eggs does she sell at the farmers' market every day?",
+        "A robe takes 2 bolts of blue fiber and half that much white fiber. How many bolts in total does it take?",
+        "Julie is reading a 120-page book. Yesterday, she was able to read 12 pages and today, she read twice as many pages as yesterday. If she wants to read half of the remaining pages tomorrow, how many pages should she read?",
+        "Ken created a care package to send to his brother, who was away at boarding school.  Ken placed a box on a scale, and then he poured into the box enough jelly beans to bring the weight to 2 pounds.  Then, he added enough brownies to cause the weight to triple.  Next, he added another 2 pounds of jelly beans.  And finally, he added enough gummy worms to double the weight once again.  What was the final weight of the box of goodies, in pounds?"
+        "Randy has 60 mango trees on his farm. He also has 5 less than half as many coconut trees as mango trees. How many trees does Randy have in all on his farm?"
+        # "What is 15 + 27?"
     ]
     
     # Test both models
-    for model_type in ["llama", "diffllama"]:
+    for model_type in ["llama"]:
         print(f"\n{'='*60}")
         print(f"ANALYZING {model_type.upper()} MODEL")
         print(f"{'='*60}")
