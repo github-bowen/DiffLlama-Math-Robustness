@@ -1,0 +1,9 @@
+model,dataset,accuracy,correct,total,eval_type
+llama_sft,Clean,0.02,1,50,post_sft
+llama_sft,INF,0.02,1,50,post_sft
+llama_sft,RCS,0.02,1,50,post_sft
+llama_sft,SD,0.0,0,50,post_sft
+diffllama_sft,Clean,0.06,3,50,post_sft
+diffllama_sft,INF,0.02,1,50,post_sft
+diffllama_sft,RCS,0.0,0,50,post_sft
+diffllama_sft,SD,0.0,0,50,post_sft

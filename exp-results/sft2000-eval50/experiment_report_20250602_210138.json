@@ -1,0 +1,12 @@
+{
+  "experiment_info": {
+    "start_time": "2025-06-02T21:01:37.621117",
+    "end_time": "2025-06-02T21:01:38.504129",
+    "total_duration_seconds": 0.8830118179321289,
+    "total_duration_formatted": "0h 0m 1s"
+  },
+  "files_generated": [
+    "results/attention_maps/"
+  ],
+  "summary": {}
+}

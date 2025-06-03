@@ -1,0 +1,54 @@
+{
+  "llama": {
+    "clean": {
+      "model_type": "llama",
+      "model_path": "./models_finetuned/llama_sft",
+      "dataset": "data/gsm8k_test.jsonl",
+      "num_samples": 20,
+      "kmi_mean": 0.09385816752910614,
+      "kmi_std": 0.02875898964703083,
+      "ni_mean": 0.0,
+      "ni_std": 0.0,
+      "oc_mean": 0.9061417579650879,
+      "oc_std": 0.028758982196450233
+    },
+    "noisy": {
+      "model_type": "llama",
+      "model_path": "./models_finetuned/llama_sft",
+      "dataset": "data/gsm8k_inf_test.jsonl",
+      "num_samples": 20,
+      "kmi_mean": 0.10140667855739594,
+      "kmi_std": 0.02415456995368004,
+      "ni_mean": 0.10617325454950333,
+      "ni_std": 0.04725354164838791,
+      "oc_mean": 0.7924200892448425,
+      "oc_std": 0.054404255002737045
+    }
+  },
+  "diffllama": {
+    "clean": {
+      "model_type": "diffllama",
+      "model_path": "./models_finetuned/diffllama_sft",
+      "dataset": "data/gsm8k_test.jsonl",
+      "num_samples": 20,
+      "kmi_mean": 0.09385816752910614,
+      "kmi_std": 0.02875898964703083,
+      "ni_mean": 0.0,
+      "ni_std": 0.0,
+      "oc_mean": 0.9061417579650879,
+      "oc_std": 0.028758982196450233
+    },
+    "noisy": {
+      "model_type": "diffllama",
+      "model_path": "./models_finetuned/diffllama_sft",
+      "dataset": "data/gsm8k_inf_test.jsonl",
+      "num_samples": 20,
+      "kmi_mean": 0.10140667855739594,
+      "kmi_std": 0.02415456995368004,
+      "ni_mean": 0.10617325454950333,
+      "ni_std": 0.04725354164838791,
+      "oc_mean": 0.7924200892448425,
+      "oc_std": 0.054404255002737045
+    }
+  }
+}

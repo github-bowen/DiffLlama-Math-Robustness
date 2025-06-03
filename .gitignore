@@ -8,3 +8,5 @@ results/
 *.jsonl
 cache/
 test_results/
+
+venv/

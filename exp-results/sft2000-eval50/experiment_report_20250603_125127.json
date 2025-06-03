@@ -1,0 +1,13 @@
+{
+  "experiment_info": {
+    "start_time": "2025-06-02T21:53:58.411818",
+    "end_time": "2025-06-03T12:51:27.148222",
+    "total_duration_seconds": 53848.73640418053,
+    "total_duration_formatted": "14h 57m 29s"
+  },
+  "files_generated": [
+    "results/sft_performance.csv",
+    "results/attention_maps/"
+  ],
+  "summary": {}
+}
