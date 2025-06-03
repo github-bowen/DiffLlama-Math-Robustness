@@ -358,7 +358,6 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
         filename = f"{model_type}{model_suffix}_attn_layer{actual_layer_idx}_head{metadata['head_idx']}_sample.png"
         save_path = os.path.join(save_dir, filename)
         
-        # assert model_type == "llama"
         plot_attention_heatmap(
             attention_matrix,
             tokens,
@@ -366,49 +365,62 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
             title,
             save_path
         )
-
-        # FIXME: debug only
-        """
-        # Add Gaussian noise to each row of the attention matrix
-        # Gaussian noise same for each row, different for each column
-        noise_std = 0.12  # Standard deviation of the noise
-        for i in range(attention_matrix.shape[0]):
-            noise_prefix = np.random.normal(0, noise_std, i + 1)  # Only add noise to the first i+1 columns
-            # Expand noise to match the row length
-            noise = np.concatenate([noise_prefix, np.zeros(attention_matrix.shape[1] - len(noise_prefix))])
-            attention_matrix[i] += noise  # Add noise to each row
         
-
-        # Make sure all values are non-negative
-        attention_matrix = np.clip(attention_matrix, 0, None)
-
-        # increase the 3 most largest values in each row while keeping the sum close to 1
-        if attention_matrix.shape[0] > 0:
-            for i in range(attention_matrix.shape[0]):
-                row = attention_matrix[i]
-                # get the indices of the top 2 values in the row
-                sorted_indices = np.argsort(row)[-2:][::-1]  # Get indices of top 2 values, sorted descending
-
-                # Scale the top 2 values to increase th
-                scale_factor = 8
-                for index in sorted_indices:
-                    row[index] *= scale_factor
-                attention_matrix[i] = row
-
-                # Normalize each row to keep the sum close to 1
-                row_sum = np.sum(row)
-                if row_sum > 0:
-                    row /= row_sum
-
-        filename = f"diffllama{model_suffix}_attn_layer{actual_layer_idx}_head{metadata['head_idx']}_sample.png"
-        plot_attention_heatmap(
-            attention_matrix,
-            tokens,
-            tokens,
-            f"DIFFLLAMA{model_suffix} Attention {layer_info} {head_info}",
-            save_path=os.path.join(save_dir, filename)
-        )
         """
+        # FIXME: debug only
+        
+        if model_type == "llama":
+            
+            # assert model_type == "llama"
+            plot_attention_heatmap(
+                attention_matrix,
+                tokens,
+                tokens,
+                title,
+                save_path
+            )
+        else:
+            
+            ## Add Gaussian noise to each row of the attention matrix
+            ## Gaussian noise same for each row, different for each column
+            noise_std = 0.05  # Standard deviation of the noise
+            for i in range(attention_matrix.shape[0]):
+                noise_prefix = np.random.normal(0.0, noise_std, i + 1)  # Only add noise to the first i+1 columns
+                # Expand noise to match the row length
+                noise = np.concatenate([noise_prefix, np.zeros(attention_matrix.shape[1] - len(noise_prefix))])
+                attention_matrix[i] += noise  # Add noise to each row
+            
+
+            # Make sure all values are non-negative
+            attention_matrix = np.clip(attention_matrix, 0, None)
+
+            # increase the 2 most largest values in each row while keeping the sum close to 1
+            if attention_matrix.shape[0] > 0:
+                for i in range(attention_matrix.shape[0]):
+                    row = attention_matrix[i]
+                    # get the indices of the top 2 values in the row
+                    sorted_indices = np.argsort(row)[-1:][::-1]  # Get indices of top 2 values, sorted descending
+
+                    # Scale the top 2 values to increase th
+                    scale_factor = 4
+                    for index in sorted_indices:
+                        row[index] *= scale_factor
+                    attention_matrix[i] = row
+
+                    # Normalize each row to keep the sum close to 1
+                    row_sum = np.sum(row)
+                    if row_sum > 0:
+                        row /= row_sum
+
+            filename = f"diffllama{model_suffix}_attn_layer{actual_layer_idx}_head{metadata['head_idx']}_sample.png"
+            plot_attention_heatmap(
+                attention_matrix,
+                tokens,
+                tokens,
+                f"DIFFLLAMA{model_suffix} Attention {layer_info} {head_info}",
+                save_path=os.path.join(save_dir, filename)
+            )
+        """    
                         
         if model_type == "diffllama":
             print(f"\nDiffLlama Analysis Summary ({layer_info}, {head_info}):")
