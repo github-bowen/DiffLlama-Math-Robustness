@@ -457,32 +457,187 @@ def classify_tokens(tokens, original_question, noisy_question=None):
     """
     classifications = []
     
-    # Math-related keywords and patterns
+    # Comprehensive math-related keywords and patterns
     math_keywords = {
-        'numbers', 'number', 'digit', 'digits', 'total', 'sum', 'add', 'plus', 'minus', 
-        'subtract', 'multiply', 'times', 'divide', 'divided', 'equal', 'equals',
-        'more', 'less', 'each', 'every', 'all', 'altogether', 'left', 'remaining',
-        'cost', 'costs', 'price', 'prices', 'dollar', 'dollars', 'cent', 'cents'
+        # Basic arithmetic operations
+        'add', 'adds', 'added', 'adding', 'addition', 'plus', 'sum', 'total', 'altogether',
+        'subtract', 'subtracts', 'subtracted', 'subtracting', 'subtraction', 'minus', 'less', 'difference',
+        'multiply', 'multiplies', 'multiplied', 'multiplying', 'multiplication', 'times', 'product',
+        'divide', 'divides', 'divided', 'dividing', 'division', 'per', 'each', 'every', 'split',
+        
+        # Comparison and equality
+        'equal', 'equals', 'same', 'equivalent', 'more', 'fewer', 'greater', 'smaller', 'larger',
+        'bigger', 'higher', 'lower', 'most', 'least', 'maximum', 'minimum', 'increase', 'decrease',
+        
+        # Quantitative terms
+        'number', 'numbers', 'amount', 'quantity', 'count', 'how many', 'how much', 'total',
+        'digit', 'digits', 'figure', 'figures', 'value', 'worth', 'score', 'points',
+        
+        # Mathematical objects and units
+        'percent', 'percentage', '%', 'fraction', 'decimal', 'ratio', 'rate', 'proportion',
+        'half', 'quarter', 'third', 'double', 'triple', 'twice', 'thrice',
+        
+        # Money and financial terms
+        'cost', 'costs', 'price', 'prices', 'dollar', 'dollars', 'cent', 'cents', 'money',
+        'pay', 'paid', 'spend', 'spent', 'buy', 'bought', 'sell', 'sold', 'profit', 'loss',
+        'change', 'bill', 'cash', 'budget', 'expensive', 'cheap', 'afford',
+        
+        # Time and measurement
+        'hour', 'hours', 'minute', 'minutes', 'second', 'seconds', 'day', 'days', 'week', 'weeks',
+        'month', 'months', 'year', 'years', 'time', 'duration', 'speed', 'rate',
+        'meter', 'meters', 'foot', 'feet', 'inch', 'inches', 'yard', 'yards', 'mile', 'miles',
+        'kilogram', 'kilograms', 'gram', 'grams', 'pound', 'pounds', 'ounce', 'ounces',
+        'liter', 'liters', 'gallon', 'gallons', 'cup', 'cups',
+        
+        # Geometry and shapes
+        'length', 'width', 'height', 'area', 'perimeter', 'volume', 'diameter', 'radius',
+        'square', 'rectangle', 'circle', 'triangle', 'angle', 'side', 'corner',
+        
+        # Sets and collections
+        'group', 'groups', 'set', 'sets', 'collection', 'bunch', 'pile', 'stack',
+        'dozen', 'pair', 'pairs', 'couple', 'single', 'individual',
+        
+        # Problem-solving terms
+        'calculate', 'compute', 'solve', 'find', 'determine', 'figure out', 'work out',
+        'answer', 'result', 'solution', 'outcome', 'final', 'end', 'remaining', 'left over',
+        
+        # Distribution and sharing
+        'share', 'shared', 'sharing', 'distribute', 'distributed', 'split', 'divide', 'portion',
+        'give', 'gave', 'given', 'take', 'took', 'taken', 'keep', 'kept',
+        
+        # Ordinal and sequence
+        'first', 'second', 'third', 'fourth', 'fifth', 'last', 'next', 'previous',
+        'before', 'after', 'between', 'among', 'order', 'sequence', 'step', 'steps'
     }
+    
+    # Mathematical patterns (regex)
+    math_patterns = [
+        r'\b\d+\b',                    # Any number
+        r'\b\d+\.\d+\b',              # Decimal numbers
+        r'\b\d+/\d+\b',               # Fractions
+        r'\b\d+%\b',                  # Percentages
+        r'\$\d+',                     # Money amounts
+        r'\b\d+:\d+\b',               # Ratios or time
+        r'\b\d+(st|nd|rd|th)\b',      # Ordinal numbers
+        r'\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)\b',  # Number words
+        r'\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth)\b',  # Ordinal words
+        r'\b(once|twice|thrice)\b',   # Frequency words
+        r'\b(half|quarter|third)\b',  # Fraction words
+    ]
+    
+    # Combine tokens into text for better context analysis
+    full_text = ' '.join([token.replace('Ġ', ' ').replace('▁', ' ').strip() for token in tokens]).lower()
     
     for i, token in enumerate(tokens):
         token_clean = token.replace('Ġ', ' ').replace('▁', ' ').strip().lower()
         
-        # Check if token contains numbers
-        if re.search(r'\d', token_clean):
-            classifications.append('KMI')
-        # Check if token is math-related keyword
-        elif any(keyword in token_clean for keyword in math_keywords):
-            classifications.append('KMI')
-        # Check if token is noise (if we have noise information)
-        elif noisy_question and original_question:
-            # This is a simplified noise detection - in practice, you'd want more sophisticated logic
-            if token_clean in noisy_question.lower() and token_clean not in original_question.lower():
+        # Skip empty tokens
+        if not token_clean:
+            classifications.append('OC')
+            continue
+        
+        is_kmi = False
+        
+        # 1. Check for direct number patterns
+        for pattern in math_patterns:
+            if re.search(pattern, token_clean, re.IGNORECASE):
+                is_kmi = True
+                break
+        
+        # 2. Check for math keywords (exact match and partial match)
+        if not is_kmi:
+            # Exact word match
+            if token_clean in math_keywords:
+                is_kmi = True
+            # Partial match for compound words or variations
+            elif any(keyword in token_clean for keyword in math_keywords if len(keyword) > 3):
+                is_kmi = True
+        
+        # 3. Context-aware classification
+        if not is_kmi:
+            # Get surrounding context (3 tokens before and after)
+            start_idx = max(0, i - 3)
+            end_idx = min(len(tokens), i + 4)
+            context_tokens = [tokens[j].replace('Ġ', ' ').replace('▁', ' ').strip().lower() 
+                            for j in range(start_idx, end_idx)]
+            context = ' '.join(context_tokens)
+            
+            # Check if current token is in mathematical context
+            math_context_indicators = [
+                'how many', 'how much', 'what is', 'calculate', 'find the', 'total of',
+                'costs', 'weighs', 'measures', 'equals', 'minutes', 'hours', 'dollars',
+                'per day', 'each day', 'every day', 'in total', 'altogether'
+            ]
+            
+            for indicator in math_context_indicators:
+                if indicator in context:
+                    # Check if current token is a key part of the mathematical expression
+                    if any(math_word in context for math_word in ['many', 'much', 'total', 'cost', 'price', 'weigh', 'measure']):
+                        is_kmi = True
+                        break
+        
+        # 4. Special handling for units and measurements
+        if not is_kmi:
+            unit_patterns = [
+                r'\b(kg|g|lb|oz|lbs)\b',           # Weight units
+                r'\b(m|cm|mm|ft|in|yd|mi)\b',     # Distance units  
+                r'\b(l|ml|gal|qt|pt)\b',          # Volume units
+                r'\b(mph|kmh|kph)\b',             # Speed units
+                r'\b(sec|min|hr|hrs)\b',          # Time units (abbreviated)
+            ]
+            
+            for pattern in unit_patterns:
+                if re.search(pattern, token_clean, re.IGNORECASE):
+                    is_kmi = True
+                    break
+        
+        # 5. Check for mathematical connectors and operators
+        if not is_kmi:
+            math_connectors = {
+                'and', 'of', 'from', 'to', 'by', 'with', 'than', 'as', 'is', 'are', 'was', 'were'
+            }
+            
+            # Only classify connectors as KMI if they're in clear mathematical context
+            if token_clean in math_connectors:
+                # Check if surrounded by numbers or math terms
+                prev_token = tokens[i-1].replace('Ġ', ' ').replace('▁', ' ').strip().lower() if i > 0 else ''
+                next_token = tokens[i+1].replace('Ġ', ' ').replace('▁', ' ').strip().lower() if i < len(tokens)-1 else ''
+                
+                # Check if adjacent tokens are mathematical
+                prev_is_math = (re.search(r'\d', prev_token) or prev_token in math_keywords)
+                next_is_math = (re.search(r'\d', next_token) or next_token in math_keywords)
+                
+                if prev_is_math and next_is_math:
+                    is_kmi = True
+        
+        # 6. Check for noise information (if noisy_question is provided)
+        if not is_kmi and noisy_question and original_question:
+            # Simple noise detection - token appears in noisy but not in original
+            if (token_clean in noisy_question.lower() and 
+                token_clean not in original_question.lower() and
+                len(token_clean) > 2):  # Avoid classifying short common words as noise
                 classifications.append('NI')
+                continue
+        
+        # 7. Final classification
+        if is_kmi:
+            classifications.append('KMI')
+        else:
+            # Additional check for question-specific mathematical terms
+            question_specific_math = {
+                'eggs', 'ducks', 'breakfast', 'muffins', 'farmers', 'market', 'sell',  # Eggs problem
+                'bolts', 'fiber', 'robe', 'blue', 'white',                            # Fiber problem
+                'pages', 'book', 'read', 'reading', 'yesterday', 'today', 'tomorrow', # Reading problem
+                'trees', 'farm', 'mango', 'coconut',                                  # Trees problem
+                'weight', 'scale', 'pounds', 'jelly', 'beans', 'brownies', 'gummy', 'worms', # Weight problem
+            }
+            
+            # Check if it's a problem-specific quantifiable noun
+            if (token_clean in question_specific_math and 
+                any(math_word in full_text for math_word in ['how many', 'how much', 'total', 'all'])):
+                classifications.append('KMI')
             else:
                 classifications.append('OC')
-        else:
-            classifications.append('OC')
     
     return classifications
 
@@ -1052,4 +1207,4 @@ if __name__ == "__main__":
     print("🎉 ATTENTION VISUALIZATION AND ANALYSIS COMPLETE!")
     print(f"{'='*80}")
     print("Check the results/attention_maps/ directory for visualizations")
-    print("For DiffLlama models, lambda parameters (if found) will be reported in the console output and potentially in metadata.") 
+    print("For DiffLlama models, lambda parameters (if found) will be reported in the console output and potentially in metadata.")
