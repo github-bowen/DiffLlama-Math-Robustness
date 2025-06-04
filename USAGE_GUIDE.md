@@ -2,6 +2,28 @@
 
 This guide provides detailed instructions on how to use the DiffLlama vs Llama noise robustness experiment framework, including the complete workflow for setup, execution, and result analysis.
 
+## 📚 Table of Contents
+
+- [DiffLlama vs Llama Experiment Usage Guide](#diffllama-vs-llama-experiment-usage-guide)
+  - [📚 Table of Contents](#-table-of-contents)
+  - [🎯 Quick Start](#-quick-start)
+    - [1. Environment Check](#1-environment-check)
+    - [2. Download Models (if needed)](#2-download-models-if-needed)
+    - [3. Inspect Model Structure and Attention Patterns (Optional)](#3-inspect-model-structure-and-attention-patterns-optional)
+    - [4. Run Quick Experiment](#4-run-quick-experiment)
+  - [🔧 Detailed Usage Instructions](#-detailed-usage-instructions)
+    - [Command Line Arguments](#command-line-arguments)
+      - [Main Experiment Script (`main.py`)](#main-experiment-script-mainpy)
+      - [Colab Experiment Script (`colab/experiment.py`)](#colab-experiment-script-colabexperimentpy)
+      - [Running the Main Attention Visualizer](#running-the-main-attention-visualizer)
+      - [Running Attention Visualizer Tests](#running-attention-visualizer-tests)
+      - [Inspect the Results of Attention Quantitative Analysis](#inspect-the-results-of-attention-quantitative-analysis)
+    - [Running Modules Independently](#running-modules-independently)
+      - [Data Generation](#data-generation)
+      - [Model Evaluation](#model-evaluation)
+      - [Attention Analysis](#attention-analysis)
+    - [Adding New Noise Type](#adding-new-noise-type)
+
 ## 🎯 Quick Start
 
 ### 1. Environment Check
@@ -110,6 +132,7 @@ python -m main --max-samples 50 --sft-samples 100 --sft-epochs 1
 ```
 
 SFT on all samples:
+
 ```bash
 ## SFT + Attention Analysis
 python -m main --max-samples 50 --sft-samples 7473 --sft-epochs 1 --skip-zero-shot
@@ -172,6 +195,47 @@ For `full` mode:
 !python -m colab.experiment --mode full --enable-sft
 ```
 
+#### Running the Main Attention Visualizer
+
+The primary script for visualizing attention is `src/attention_visualizer.py`. Run it from the project root directory:
+
+```bash
+python -m src.attention_visualizer
+```
+
+- This command will generate visualizations for predefined sample questions within the script.
+- If `data/gsm8k_test.jsonl` is present (and the script is configured to use it), it may also process questions from this dataset.
+- Output maps are saved in `results/attention_maps/`.
+- For DiffLlama, observe the console output for reported lambda parameters and other metadata.
+
+#### Running Attention Visualizer Tests
+
+Test scripts are provided in the `scripts/` directory to verify the functionality. Run these from the project root directory.
+
+1. **Test Llama Attention Visualization:**
+
+    ```bash
+    python -m scripts.test_llama_attention
+    ```
+
+    This script loads a standard Llama model, extracts attention scores, and generates sample visualizations in `test_results/llama_test/`.
+
+2. **Test DiffLlama Attention Visualization and Comparison:**
+
+    ```bash
+    python -m scripts.test_diffllama_attention
+    ```
+
+    This script tests DiffLlama specific attention extraction (including lambda parameters), compares its attention with a standard Llama model, and generates sample visualizations in `test_results/diffllama_test/`.
+
+#### Inspect the Results of Attention Quantitative Analysis
+
+After running the attention visualizer (or running the main/colab experiments with attention analysis step), you can inspect the results in `results/attention_analysis_sft.json` through the following command:
+
+```bash
+python -m scripts.inspect_attention_allocation_ratio_results
+```
+
 ### Running Modules Independently
 
 #### Data Generation
@@ -230,36 +294,3 @@ def generate_custom_noisy_dataset():
     # Use your noise function to generate dataset
     pass
 ```
-
-## Llama and DiffLlama Attention Visualizer
-
-### Running the Main Attention Visualizer
-
-The primary script for visualizing attention is `src/attention_visualizer.py`. Run it from the project root directory:
-
-```bash
-python -m src.attention_visualizer
-```
-
--   This command will generate visualizations for predefined sample questions within the script.
--   If `data/gsm8k_test.jsonl` is present (and the script is configured to use it), it may also process questions from this dataset.
--   Output maps are saved in `results/attention_maps/`.
--   For DiffLlama, observe the console output for reported lambda parameters and other metadata.
-
-### Running Attention Visualizer Tests
-
-Test scripts are provided in the `scripts/` directory to verify the functionality. Run these from the project root directory.
-
-1.  **Test Llama Attention Visualization:**
-    ```bash
-    python -m scripts.test_llama_attention
-    ```
-    This script loads a standard Llama model, extracts attention scores, and generates sample visualizations in `test_results/llama_test/`.
-
-2.  **Test DiffLlama Attention Visualization and Comparison:**
-    ```bash
-    python -m scripts.test_diffllama_attention
-    ```
-    This script tests DiffLlama specific attention extraction (including lambda parameters), compares its attention with a standard Llama model, and generates sample visualizations in `test_results/diffllama_test/`.
-
-Always check the console output for test results (PASSED/FAILED) and any error messages.
