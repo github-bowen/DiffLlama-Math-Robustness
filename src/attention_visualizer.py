@@ -455,9 +455,6 @@ def classify_tokens(tokens, original_question, noisy_question=None):
     Returns:
         token_classifications: list of classifications for each token
     """
-    # Join tokens to reconstruct text (approximate)
-    text = ' '.join(tokens).replace(' ##', '').replace('##', '')
-    
     classifications = []
     
     # Math-related keywords and patterns
@@ -544,7 +541,7 @@ def quantify_attention_allocation(model_type, dataset_file, num_samples=10, laye
         
         # Calculate attention allocation per token type
         # We'll sum attention given by each token (row-wise sum)
-        attention_per_token = np.sum(attention_matrix, axis=1)  # Sum across columns (keys)
+        attention_per_token = np.sum(attention_matrix, axis=0)  # Sum across columns (keys)
         
         total_attention = np.sum(attention_per_token)
         
@@ -629,10 +626,6 @@ def compare_attention_patterns(clean_dataset="data/gsm8k_test.jsonl",
     use_sft = sft_model_paths and len(sft_model_paths) > 0
     model_suffix = " (SFT)" if use_sft else ""
     print(f"Comparing attention patterns between models and datasets{model_suffix}...")
-    
-    # Load sample data
-    clean_data = load_jsonl(clean_dataset)[:num_samples]
-    noisy_data = load_jsonl(noisy_dataset)[:num_samples]
     
     results = {}
     
