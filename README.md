@@ -5,6 +5,32 @@ A research project on mathematical reasoning noise robustness based on different
 > [!NOTE]
 > For usage guide, please refer to [USAGE_GUIDE.md](USAGE_GUIDE.md).
 
+## 📚 Table of Contents
+
+- [DiffLlama vs Llama Noise Robustness Experiment](#diffllama-vs-llama-noise-robustness-experiment)
+  - [📚 Table of Contents](#-table-of-contents)
+  - [📋 Project Overview](#-project-overview)
+    - [🎯 Research Objectives](#-research-objectives)
+  - [🏗️ Project Structure](#️-project-structure)
+    - [Example of Noise Injection](#example-of-noise-injection)
+    - [Evaluation Metrics](#evaluation-metrics)
+    - [Experiment Modes](#experiment-modes)
+      - [1. Quick Test Mode](#1-quick-test-mode)
+      - [2. Standard Mode](#2-standard-mode)
+      - [3. Full Mode](#3-full-mode)
+  - [📊 Dataset Description](#-dataset-description)
+    - [Original Dataset](#original-dataset)
+    - [Noisy Datasets](#noisy-datasets)
+  - [🤖 Model Description](#-model-description)
+    - [DiffLlama-375M](#diffllama-375m)
+    - [Llama-375M](#llama-375m)
+  - [📈 Result Analysis](#-result-analysis)
+    - [Output Files](#output-files)
+    - [Performance Metrics](#performance-metrics)
+      - [Pass@1 Accuracy](#pass1-accuracy)
+      - [Attention Analysis Metrics](#attention-analysis-metrics)
+  - [📄 License](#-license)
+
 ## 📋 Project Overview
 
 This project implements a complete experimental framework for studying and comparing the noise robustness of different attention mechanisms in mathematical reasoning tasks. Through systematic experimental design, it deeply explores the advantages of DiffLlama's differential attention mechanism compared to traditional attention mechanisms.
@@ -26,14 +52,11 @@ This project implements a complete experimental framework for studying and compa
 │   ├── experiment.py
 │   ├── __init__.py
 │   └── README.md
-├── data
-├── LICENSE
-├── main.py
-├── README.md
-├── requirements.txt
 ├── scripts
 │   ├── download_models.py
 │   ├── __init__.py
+│   ├── inspect_model_structure.py
+│   ├── inspect_attention_allocation_ratio_results.py
 │   ├── interactive_inference.py
 │   ├── test_diffllama_attention.py
 │   ├── test_llama_attention.py
@@ -46,6 +69,11 @@ This project implements a complete experimental framework for studying and compa
 │   ├── model_loader.py
 │   ├── noise_injection.py
 │   └── utils.py
+├── data
+├── LICENSE
+├── main.py
+├── README.md
+├── requirements.txt
 └── USAGE_GUIDE.md
 ```
 
@@ -120,15 +148,19 @@ Each noisy dataset is generated based on the original Clean dataset.
 
 ```bash
 results/
-├── experiment_results_[timestamp].csv     # Main performance results
+├── experiment_report_[timestamp].csv      # Main performance results
 ├── detailed_results_[timestamp].json      # Detailed results
-├── attention_analysis_[timestamp].json    # Attention analysis
-├── model_comparison_[timestamp].png       # Performance comparison
+├── attention_analysis_sft.json            # Attention analysis
+├── sft_performance.csv                    # Performance comparison
 └── attention_maps/                        # Attention heatmaps
-    ├── clean_samples/
-    ├── inf_samples/
-    ├── rcs_samples/
-    └── sd_samples/
+    ├── clean_q1_sft/
+    ├── ......
+    ├── INF_noise_q1_sft/
+    ├── ......
+    ├── RCS_noise_q1_sft/
+    ├── ......
+    ├── SD_noise_q1_sft/
+    └── ......
 ```
 
 ### Performance Metrics
@@ -144,59 +176,6 @@ results/
 - **NI Ratio**: Proportion of attention focused on noise information
 - **OC Ratio**: Proportion of attention focused on other content
 
-### Interpreting Results
-
-#### Example Performance Comparison Table
-
-```
-           Clean    INF      RCS      SD
-llama      0.145    0.098    0.110    0.105
-diffllama  0.162    0.123    0.135    0.128
-```
-
-**Interpretation:**
-
-- DiffLlama outperforms Llama on all datasets
-- Noise significantly reduces the performance of both models
-- DiffLlama's performance drop is smaller on noisy data
-
-#### Example Attention Analysis
-
-```json
-{
-  "llama": {
-    "clean": {"kmi_ratio": 0.45, "ni_ratio": 0.0, "oc_ratio": 0.55},
-    "inf": {"kmi_ratio": 0.32, "ni_ratio": 0.18, "oc_ratio": 0.50}
-  },
-  "diffllama": {
-    "clean": {"kmi_ratio": 0.50, "ni_ratio": 0.0, "oc_ratio": 0.50},
-    "inf": {"kmi_ratio": 0.43, "ni_ratio": 0.12, "oc_ratio": 0.45}
-  }
-}
-```
-
-**Interpretation:**
-
-- DiffLlama focuses better on key mathematical information (KMI)
-- When facing noise, DiffLlama's attention dispersion is smaller
-- Proves the effectiveness of the differential attention mechanism
-
-## 🎓 Academic Usage
-
-### Citation Information
-
-If you use this framework in your research, please consider citing the relevant DiffLlama paper and GSM8K dataset.
-
-### Experiment Reproduction
-
-- Set random seeds for reproducibility
-- Record hardware configuration and model versions
-- Save complete experiment configuration and results
-
 ## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
-
-## 🤝 Contributing
-
-Contributions in code, issue reports, or improvement suggestions are welcome. Please participate through GitHub Issues or Pull Requests.
