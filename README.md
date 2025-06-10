@@ -2,6 +2,8 @@
 
 A research project on mathematical reasoning noise robustness based on differential attention mechanism, comparing the performance of [DiffLlama-375M](https://huggingface.co/reyllama/DiffLlama-375M) and [Llama-375M](https://huggingface.co/reyllama/Llama_375M) on noisy mathematical problems.
 
+This project is an extension of the work presented in [Differential Transformer](https://arxiv.org/abs/2410.05258), adapted to use small-scale models for mathematical reasoning robustness analysis.
+
 > [!NOTE]
 > For usage guide, please refer to [USAGE_GUIDE.md](USAGE_GUIDE.md).
 
@@ -34,6 +36,8 @@ A research project on mathematical reasoning noise robustness based on different
 ## 📋 Project Overview
 
 This project implements a complete experimental framework for studying and comparing the noise robustness of different attention mechanisms in mathematical reasoning tasks. Through systematic experimental design, it deeply explores the advantages of DiffLlama's differential attention mechanism compared to traditional attention mechanisms.
+
+**Paper Reference**: This work extends the differential attention mechanism introduced in *Differential Transformer* ([arXiv:2410.05258](https://arxiv.org/abs/2410.05258)) by applying it to mathematical reasoning tasks using smaller-scale models (375M parameters) to investigate noise robustness properties.
 
 ### 🎯 Research Objectives
 
