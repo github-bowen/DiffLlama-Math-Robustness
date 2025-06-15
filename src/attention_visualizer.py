@@ -74,7 +74,7 @@ def get_attention_scores(model, tokenizer, text, device, model_type, layer_idx=-
     
     try:
         with torch.no_grad():
-            outputs = model(**inputs)
+            outputs = model(**inputs, output_attentions=True)
             
             # Extract standard attention if available (primary source for Llama, fallback for DiffLlama)
             if hasattr(outputs, 'attentions') and outputs.attentions is not None:

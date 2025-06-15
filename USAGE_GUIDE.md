@@ -2,6 +2,10 @@
 
 This guide provides detailed instructions on how to use the DiffLlama vs Llama noise robustness experiment framework, including the complete workflow for setup, execution, and result analysis.
 
+> [!Important]
+>
+> Attention matrix calculation for DiffLlama requires a specific fix in the `DiffLlamaAttention` class in the Hugging Face Transformers library (Usually located in `transformers/models/diffllama/modular_diffllama.py`). This fix is necessary to correctly visualize the differential attention weights. See the section on [DiffLlama Attention Matrix Fix](#diffllama-attention-matrix-fix) for details.
+
 ## 📚 Table of Contents
 
 - [DiffLlama vs Llama Experiment Usage Guide](#diffllama-vs-llama-experiment-usage-guide)
@@ -16,6 +20,10 @@ This guide provides detailed instructions on how to use the DiffLlama vs Llama n
       - [Main Experiment Script (`main.py`)](#main-experiment-script-mainpy)
       - [Colab Experiment Script (`colab/experiment.py`)](#colab-experiment-script-colabexperimentpy)
       - [Running the Main Attention Visualizer](#running-the-main-attention-visualizer)
+      - [DiffLlama Attention Matrix Fix](#diffllama-attention-matrix-fix)
+        - [Required Modification:](#required-modification)
+        - [Why This Fix Is Needed:](#why-this-fix-is-needed)
+        - [Running Tests After the Fix:](#running-tests-after-the-fix)
       - [Running Attention Visualizer Tests](#running-attention-visualizer-tests)
       - [Inspect the Results of Attention Quantitative Analysis](#inspect-the-results-of-attention-quantitative-analysis)
     - [Running Modules Independently](#running-modules-independently)
@@ -207,6 +215,94 @@ python -m src.attention_visualizer
 - If `data/gsm8k_test.jsonl` is present (and the script is configured to use it), it may also process questions from this dataset.
 - Output maps are saved in `results/attention_maps/`.
 - For DiffLlama, observe the console output for reported lambda parameters and other metadata.
+
+#### DiffLlama Attention Matrix Fix
+
+When visualizing attention patterns for DiffLlama, the default implementation in Hugging Face Transformers library doesn't correctly return the differential attention weights. To properly visualize DiffLlama attention weights, you need to modify the `forward` method of `DiffLlamaAttention` class in `site-packages/transformers/models/diffllama/modular_diffllama.py`.
+
+##### Required Modification:
+
+Change from:
+
+```python
+attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
+lambda_1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1, dtype=torch.float32)).to(
+    query_states.dtype
+)
+lambda_2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1, dtype=torch.float32)).to(
+    query_states.dtype
+)
+lambda_full = lambda_1 - lambda_2 + self.lambda_init
+
+attn_output = torch.matmul(attn_weights, value_states)
+attn_output1, attn_output2 = torch.chunk(attn_output, 2, dim=1)
+
+attn_output = attn_output1 - lambda_full * attn_output2
+attn_output = (1 - self.lambda_init) * self.groupnorm(attn_output)
+attn_output = attn_output.transpose(1, 2).contiguous()
+attn_output = attn_output.reshape(bsz, q_len, -1)
+
+attn_output = self.o_proj(attn_output)
+
+if not output_attentions:
+    attn_weights = None
+
+return attn_output, attn_weights
+```
+
+To:
+
+```python
+attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
+lambda_1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1, dtype=torch.float32)).to(
+    query_states.dtype
+)
+lambda_2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1, dtype=torch.float32)).to(
+    query_states.dtype
+)
+lambda_full = lambda_1 - lambda_2 + self.lambda_init
+
+# attn_output = torch.matmul(attn_weights, value_states)
+attn_output1, attn_output2 = torch.chunk(attn_weights, 2, dim=1)
+
+# attn_output = attn_output1 - lambda_full * attn_output2
+attn_weights = attn_output1 - lambda_full * attn_output2
+attn_output = torch.matmul(attn_weights, value_states)
+
+attn_output = (1 - self.lambda_init) * self.groupnorm(attn_output)
+attn_output = attn_output.transpose(1, 2).contiguous()
+attn_output = attn_output.reshape(bsz, q_len, -1)
+
+attn_output = self.o_proj(attn_output)
+
+if not output_attentions:
+    attn_weights = None
+
+return attn_output, attn_weights
+```
+
+##### Why This Fix Is Needed:
+
+The original implementation in DiffLlamaAttention first multiplies the attention weights by the value states and then applies the differential mechanism. This means when you set `output_attentions=True`, you get the raw attention weights before the differential calculation, not the actual differential attention weights.
+
+The fix reorders the operations to:
+
+1. First compute the differential attention weights by splitting the attention matrix and applying the lambda parameters
+2. Only then multiply with value states
+
+With this modification, `outputs.attentions` in `attention_visualizer.py` correctly returns the differential attention weights that represent DiffLlama's actual attention mechanism.
+
+##### Running Tests After the Fix:
+
+To verify the fix is working correctly:
+
+```bash
+python -m scripts.test_diffllama_attention
+```
+
+The attention visualizations should now correctly show the differential attention patterns characteristic of DiffLlama.
 
 #### Running Attention Visualizer Tests
 
