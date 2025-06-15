@@ -222,66 +222,9 @@ When visualizing attention patterns for DiffLlama, the default implementation in
 
 ##### Required Modification:
 
-Change from:
+Change from the left one to the right one: 
 
-```python
-attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
-attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
-lambda_1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1, dtype=torch.float32)).to(
-    query_states.dtype
-)
-lambda_2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1, dtype=torch.float32)).to(
-    query_states.dtype
-)
-lambda_full = lambda_1 - lambda_2 + self.lambda_init
-
-attn_output = torch.matmul(attn_weights, value_states)
-attn_output1, attn_output2 = torch.chunk(attn_output, 2, dim=1)
-
-attn_output = attn_output1 - lambda_full * attn_output2
-attn_output = (1 - self.lambda_init) * self.groupnorm(attn_output)
-attn_output = attn_output.transpose(1, 2).contiguous()
-attn_output = attn_output.reshape(bsz, q_len, -1)
-
-attn_output = self.o_proj(attn_output)
-
-if not output_attentions:
-    attn_weights = None
-
-return attn_output, attn_weights
-```
-
-To:
-
-```python
-attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
-attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
-lambda_1 = torch.exp(torch.sum(self.lambda_q1 * self.lambda_k1, dim=-1, dtype=torch.float32)).to(
-    query_states.dtype
-)
-lambda_2 = torch.exp(torch.sum(self.lambda_q2 * self.lambda_k2, dim=-1, dtype=torch.float32)).to(
-    query_states.dtype
-)
-lambda_full = lambda_1 - lambda_2 + self.lambda_init
-
-# attn_output = torch.matmul(attn_weights, value_states)
-attn_output1, attn_output2 = torch.chunk(attn_weights, 2, dim=1)
-
-# attn_output = attn_output1 - lambda_full * attn_output2
-attn_weights = attn_output1 - lambda_full * attn_output2
-attn_output = torch.matmul(attn_weights, value_states)
-
-attn_output = (1 - self.lambda_init) * self.groupnorm(attn_output)
-attn_output = attn_output.transpose(1, 2).contiguous()
-attn_output = attn_output.reshape(bsz, q_len, -1)
-
-attn_output = self.o_proj(attn_output)
-
-if not output_attentions:
-    attn_weights = None
-
-return attn_output, attn_weights
-```
+![modular_diffllama.py change](https://github.com/user-attachments/assets/b48ae058-7192-44bc-842d-ed2854302e32)
 
 ##### Why This Fix Is Needed:
 
