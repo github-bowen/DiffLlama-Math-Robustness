@@ -44,28 +44,6 @@ def get_attention_scores(model, tokenizer, text, device, model_type, layer_idx=-
     Returns:
         attention_matrix, tokens, metadata
     """
-    if model_type == "diffllama":
-        # first try to use the specialized DiffLlama method
-        try:
-            diffllama_attention, components = get_diffllama_attention_components(
-                model, tokenizer, text, device, layer_idx, head_idx
-            )
-            if diffllama_attention is not None:
-                tokens = [tokenizer.decode([token_id]) for token_id in 
-                         tokenizer(text, return_tensors="pt", truncation=True, max_length=512)['input_ids'][0]]
-                
-                metadata = {
-                    'layer_idx': layer_idx, 'head_idx': head_idx,
-                    'seq_len': len(tokens), 'model_type': model_type,
-                    'extraction_method': 'diffllama_specialized',
-                    'lambda_value': components.get('lambda'),
-                    'captured_components': list(components.keys())
-                }
-                
-                print(f"✅ Successfully extracted DiffLlama differential attention using specialized method")
-                return diffllama_attention, tokens, metadata
-        except Exception as e:
-            print(f"⚠️ DiffLlama specialized extraction failed: {e}, falling back to standard method")
     
     # Tokenize input
     inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
@@ -93,59 +71,6 @@ def get_attention_scores(model, tokenizer, text, device, model_type, layer_idx=-
         'lambda_std_dev': None,
         'lambda_params': {} 
     }
-    if model_type == "diffllama":
-        metadata['lambda_std_dev'] = getattr(model.config, 'lambda_std_dev', None)
-    
-    # For DiffLlama, set up specialized hooks
-    captured_attention_weights = {}
-    hooks = []
-    
-    if model_type == "diffllama":
-        def create_diffllama_attention_hook(layer_name):
-            def hook_fn(module, input, output):
-                # Store the module for inspection
-                captured_attention_weights[f"{layer_name}_module"] = module
-                
-                # Capture attention weights if available as module attributes
-                # This would be the main attention matrix for DiffLlama if found directly
-                for attr_name in ['attn_weights', 'attention_weights', 'attention_probs']:
-                    if hasattr(module, attr_name):
-                        attr_value = getattr(module, attr_name)
-                        if torch.is_tensor(attr_value) and len(attr_value.shape) == 4 : # Ensure it's an attention matrix
-                            captured_attention_weights[f"{layer_name}_{attr_name}"] = attr_value.detach()
-                            # print(f"Captured direct attention attribute: {layer_name}_{attr_name}")
-                
-                # Capture outputs - DiffLlama might return (hidden_states, attention_weights_tuple_element)
-                if isinstance(output, tuple):
-                    for i, out_tensor in enumerate(output):
-                        if torch.is_tensor(out_tensor):
-                            if len(out_tensor.shape) == 4:  # Attention matrix shape [batch, heads, seq, seq]
-                                captured_attention_weights[f"{layer_name}_output_attn_{i}"] = out_tensor.detach()
-                                # print(f"Captured attention from output tuple: {layer_name}_output_attn_{i}")
-                            elif len(out_tensor.shape) == 3:  # Hidden states [batch, seq, hidden]
-                                captured_attention_weights[f"{layer_name}_hidden_{i}"] = out_tensor.detach()
-                
-                # Store the full output for analysis
-                captured_attention_weights[f"{layer_name}_full_output"] = output
-                return output
-            return hook_fn
-        
-        # Register hooks specifically on DiffLlamaSdpaAttention modules
-        target_layer_idx = layer_idx if layer_idx >= 0 else len(model.model.layers) + layer_idx
-        
-        if hasattr(model, 'model') and hasattr(model.model, 'layers'):
-            if 0 <= target_layer_idx < len(model.model.layers):
-                layer_to_hook = model.model.layers[target_layer_idx]
-                
-                for name, module in layer_to_hook.named_modules():
-                    module_type_name = type(module).__name__
-                    if 'DiffLlama' in module_type_name and ('Attention' in module_type_name or 'Attn' in module_type_name):
-                        hook = module.register_forward_hook(
-                            create_diffllama_attention_hook(f"layer_{target_layer_idx}_{name}")
-                        )
-                        hooks.append(hook)
-                        # print(f"Registered hook on DiffLlama attention module: {name} ({module_type_name})")
-                        # print(f"  Module attributes: {[attr for attr in dir(module) if not attr.startswith('_')]}")
     
     try:
         with torch.no_grad():
@@ -166,86 +91,17 @@ def get_attention_scores(model, tokenizer, text, device, model_type, layer_idx=-
                     if head_idx < layer_attention.shape[1]:
                         attention_matrix = layer_attention[0, head_idx].cpu().numpy()
                         print(f"Extracted attention matrix from model outputs.attentions for layer {effective_layer_idx}")
-            
-            # For DiffLlama, process captured hooks
-            if model_type == "diffllama" and captured_attention_weights:
-                print(f"Captured {len(captured_attention_weights)} DiffLlama components via hooks:")
-                for key_hook, value_hook in sorted(captured_attention_weights.items()):
-                    if torch.is_tensor(value_hook):
-                        print(f"  {key_hook}: {value_hook.shape} {value_hook.dtype}")
-                    else:
-                        print(f"  {key_hook}: {type(value_hook)}")
-
-                # If standard attention_matrix wasn't found via outputs.attentions, try hooks
-                if attention_matrix is None:
-                    # Prioritize specific attributes like 'attention_weights' if found by hooks
-                    hooked_attn_candidates = {}
-                    for key_hook, tensor_hook in captured_attention_weights.items():
-                        if torch.is_tensor(tensor_hook) and len(tensor_hook.shape) == 4:
-                            if any(attr_part in key_hook for attr_part in ['_attention_weights', '_attn_weights', '_attention_probs', '_output_attn_']):
-                                hooked_attn_candidates[key_hook] = tensor_hook
-                    
-                    if hooked_attn_candidates:
-                        # Pick one, e.g., the first one found or based on a preference
-                        chosen_key = sorted(hooked_attn_candidates.keys())[0] # Simple choice
-                        chosen_tensor = hooked_attn_candidates[chosen_key]
-                        if head_idx < chosen_tensor.shape[1]:
-                            attention_matrix = chosen_tensor[0, head_idx].cpu().numpy()
-                            print(f"Used attention matrix from hooked component: {chosen_key}")
-                    else:
-                        print("Could not find a suitable 4D attention tensor in hooked components for DiffLlama.")
-
-
-                # Inspect DiffLlama modules for lambda parameters and groupnorm
-                for key_hook, value_hook in captured_attention_weights.items():
-                    if 'module' in key_hook and hasattr(value_hook, 'groupnorm'):
-                        print(f"Found DiffLlama module with groupnorm: {key_hook}")
-                        # if hasattr(value_hook.groupnorm, 'weight'):
-                        #     norm_weight = value_hook.groupnorm.weight
-                        #     if norm_weight is not None:
-                        #         print(f"  GroupNorm weight shape: {norm_weight.shape}")
-                        #         print(f"  GroupNorm weight stats: mean={norm_weight.mean():.6f}, std={norm_weight.std():.6f}")
-                        #     else:
-                        #         print(f"  GroupNorm weight is None")
-                    
-                    if 'module' in key_hook:
-                        current_module_lambdas = {}
-                        for p_name in ['lambda_q1', 'lambda_q2', 'lambda_k1', 'lambda_k2', 'lambda_std_dev']:
-                            if hasattr(value_hook, p_name):
-                                param_val = getattr(value_hook, p_name)
-                                if torch.is_tensor(param_val):
-                                    current_module_lambdas[p_name] = param_val.item() if param_val.numel() == 1 else param_val.detach().cpu().numpy()
-                                else:
-                                    current_module_lambdas[p_name] = param_val
-                        if current_module_lambdas:
-                            # print(f"  Found Lambda parameters in {key_hook}: {current_module_lambdas}")
-                            metadata['lambda_params'].update(current_module_lambdas)
-                
-            elif model_type == "diffllama" and attention_matrix is None:
-                print("Warning: No attention matrix found for DiffLlama through outputs.attentions or hooks.")
-            
-            if model_type != "diffllama" and attention_matrix is None:
-                 print(f"Warning: No attention matrix found for {model_type} model.")
+            else:
+                raise ValueError("Model outputs do not contain attention scores.")
 
     except Exception as e:
         print(f"Error extracting attention: {e}")
         import traceback
         traceback.print_exc()
-    
-    finally:
-        for hook in hooks:
-            hook.remove()
-        model.config.output_attentions = original_output_attentions
+        exit(1)
     
     # Final update to metadata
     metadata['layer_idx'] = layer_idx # Actual layer_idx used after negative indexing adjustment
-    if model_type == "diffllama":
-        metadata['captured_components'] = list(captured_attention_weights.keys())
-        if metadata.get('lambda_std_dev') is None and hasattr(model.config, 'lambda_std_dev'): # Ensure config one is there
-             metadata['lambda_std_dev'] = model.config.lambda_std_dev
-    else: 
-        metadata.pop('lambda_params', None)
-        metadata.pop('lambda_std_dev', None)
     
     return attention_matrix, tokens, metadata # Return structure changed
 
@@ -830,234 +686,6 @@ def compare_attention_patterns(clean_dataset="data/gsm8k_test.jsonl",
     
     return results
 
-def get_diffllama_attention_components(model, tokenizer, text, device, layer_idx=-1, head_idx=0):
-    """
-    Specialized function to get differential attention components for DiffLlama.
-    Focuses on calculating lambda and relies on the main model output for the final attention matrix.
-    """
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    
-    captured_components = {
-        'lambda_val': None,
-        'module_type_hooked': None,
-        # A1, A2, and final_attention_hook are removed as they are not reliably capturable currently
-    }
-    
-    def create_detailed_hook(layer_name_hook):
-        def hook_fn(module, input_args, output_val): # input_args is known to be often empty
-            # print(f"DEBUG: Hook triggered for module: {layer_name_hook}, type: {type(module).__name__}")
-            # print(f"DEBUG: input_args in hook: {input_args}")
-            # print(f"DEBUG: output_val type in hook: {type(output_val)}")
-
-            captured_components['module_type_hooked'] = type(module).__name__
-            
-            # Calculate lambda using module attributes
-            try:
-                if all(hasattr(module, attr) for attr in ['lambda_q1', 'lambda_k1', 'lambda_q2', 'lambda_k2', 'lambda_init']):
-                    l_q1_param = module.lambda_q1
-                    l_k1_param = module.lambda_k1
-                    l_q2_param = module.lambda_q2
-                    l_k2_param = module.lambda_k2
-                    
-                    # Ensure we are using the .data attribute of parameters for calculations
-                    l_q1 = l_q1_param.data if isinstance(l_q1_param, torch.nn.Parameter) else l_q1_param
-                    l_k1 = l_k1_param.data if isinstance(l_k1_param, torch.nn.Parameter) else l_k1_param
-                    l_q2 = l_q2_param.data if isinstance(l_q2_param, torch.nn.Parameter) else l_q2_param
-                    l_k2 = l_k2_param.data if isinstance(l_k2_param, torch.nn.Parameter) else l_k2_param
-                    
-                    # lambda_init is expected to be a float or a 0-dim tensor
-                    l_init_val = module.lambda_init
-                    if torch.is_tensor(l_init_val) and l_init_val.numel() == 1:
-                        l_init = l_init_val.item()
-                    elif isinstance(l_init_val, float):
-                        l_init = l_init_val
-                    else:
-                        raise ValueError(f"lambda_init has unexpected type or value: {l_init_val}")
-
-                    # Assuming lambda_q1 etc are 1D vectors (Parameters wrapping tensors)
-                    # The paper states λq1, λk1, λq2, λk2 ∈ R^d are learnable vectors.
-                    # torch.dot is for 1D tensors. If they are >1D, this needs adjustment (e.g., sum after element-wise product).
-                    # Let's assume they are 1D as per the simplest interpretation of "vector".
-                    if l_q1.ndim != 1 or l_k1.ndim != 1 or l_q2.ndim != 1 or l_k2.ndim != 1:
-                        print(f"WARNING: Lambda vectors (q1,k1,q2,k2) are not all 1D. Shapes: {l_q1.shape}, {l_k1.shape}, {l_q2.shape}, {l_k2.shape}. Dot product might be incorrect.")
-                        # Fallback or specific handling for multi-dim parameters would be needed here.
-                        # For now, we'll proceed assuming dot product is meaningful or they are squeezable to 1D.
-                        # This might require them to be e.g. [d] instead of [1, d] or [d, 1]
-                        l_q1 = l_q1.squeeze()
-                        l_k1 = l_k1.squeeze()
-                        l_q2 = l_q2.squeeze()
-                        l_k2 = l_k2.squeeze()
-                        if l_q1.ndim != 1 or l_k1.ndim != 1 or l_q2.ndim != 1 or l_k2.ndim != 1:
-                             raise ValueError("Lambda vectors could not be squeezed to 1D for dot product.")
-
-
-                    dot_q1k1 = torch.dot(l_q1, l_k1)
-                    dot_q2k2 = torch.dot(l_q2, l_k2)
-                    
-                    lambda_calculated = torch.exp(dot_q1k1) - torch.exp(dot_q2k2) + l_init
-                    captured_components['lambda_val'] = lambda_calculated.item()
-                    # print(f"DEBUG: Calculated lambda_val = {captured_components['lambda_val']} in hook for {layer_name_hook} using formula.")
-                else:
-                    missing_attrs = [attr for attr in ['lambda_q1', 'lambda_k1', 'lambda_q2', 'lambda_k2', 'lambda_init'] if not hasattr(module, attr)]
-                    # print(f"DEBUG: Missing lambda parameters on module {layer_name_hook} to calculate lambda via formula. Missing: {missing_attrs}")
-                    # Fallback to a simpler lambda if defined as a single attribute, or a default from model config or hardcoded.
-                    simple_lambda_val = getattr(module, 'lambda', None) # if 'lambda' is a direct attribute
-                    if simple_lambda_val is not None:
-                         if torch.is_tensor(simple_lambda_val) and simple_lambda_val.numel() == 1:
-                             captured_components['lambda_val'] = simple_lambda_val.item()
-                         elif isinstance(simple_lambda_val, float):
-                             captured_components['lambda_val'] = simple_lambda_val
-                         # print(f"DEBUG: Used simple module.lambda attribute: {captured_components['lambda_val']}")
-                    else:
-                        captured_components['lambda_val'] = getattr(model.config, 'diffllama_lambda_init', # try from model.config
-                                                                getattr(model.config, 'lambda_init', 0.8)) # fallback from general config or default
-                        # print(f"DEBUG: Used fallback lambda_init: {captured_components['lambda_val']}")
-
-
-            except Exception as e_lambda:
-                print(f"ERROR calculating lambda in hook for {layer_name_hook}: {e_lambda}")
-                import traceback
-                traceback.print_exc()
-                # Fallback to a default value on any error during lambda calculation
-                captured_components['lambda_val'] = getattr(model.config, 'diffllama_lambda_init', 
-                                                            getattr(model.config, 'lambda_init', 0.8))
-
-
-            return output_val # Hook must return output_val (or a modification of it)
-        return hook_fn
-    
-    target_layer_idx = layer_idx if layer_idx >= 0 else len(model.model.layers) + layer_idx
-    
-    if not (0 <= target_layer_idx < len(model.model.layers)):
-        print(f"ERROR: Invalid target_layer_idx: {target_layer_idx} for model with {len(model.model.layers)} layers.")
-        return None, captured_components
-
-    layer_to_hook = model.model.layers[target_layer_idx]
-    
-    hooks = []
-    hook_registered = False
-    for name_module, module_obj in layer_to_hook.named_modules():
-        module_type_name = type(module_obj).__name__
-        if 'DiffLlama' in module_type_name and ('Attention' in module_type_name or 'Attn' in module_type_name):
-            # print(f"DEBUG: Registering hook on: {name_module} of type {module_type_name}")
-            hook = module_obj.register_forward_hook(create_detailed_hook(f"layer_{target_layer_idx}_{name_module}"))
-            hooks.append(hook)
-            hook_registered = True
-            # It's possible multiple 'Attention' modules exist if nested, but usually one primary per layer.
-            # If main 'self_attn' is desired, ensure the hook targets it specifically or break after first match.
-            # For now, assume first found is the target or all are relevant for lambda (if shared).
-    
-    if not hook_registered:
-        print(f"WARNING: No DiffLlama attention module found to hook in layer {target_layer_idx} for lambda calculation.")
-
-    attention_matrix_to_return = None
-    original_output_attentions_config = None
-
-    try:
-        original_output_attentions_config = getattr(model.config, 'output_attentions', False)
-        model.config.output_attentions = True 
-
-        with torch.no_grad():
-            # print(f"DEBUG: Running model forward pass for get_diffllama_attention_components...")
-            outputs_model = model(**inputs, output_attentions=True) 
-            # print(f"DEBUG: Model forward pass completed.")
-            
-        # The primary source for the final attention matrix is the model's top-level output.
-        if hasattr(outputs_model, 'attentions') and outputs_model.attentions is not None:
-            # print(f"DEBUG: Attempting to use outputs_model.attentions for DiffLlama")
-            attentions_from_model_output = outputs_model.attentions
-            effective_layer_idx_direct = layer_idx if layer_idx >= 0 else len(attentions_from_model_output) + layer_idx
-            
-            if 0 <= effective_layer_idx_direct < len(attentions_from_model_output):
-                layer_attention_direct = attentions_from_model_output[effective_layer_idx_direct]
-                if layer_attention_direct.ndim == 4 and head_idx < layer_attention_direct.shape[1]:
-                    attention_matrix_to_return = layer_attention_direct[0, head_idx].cpu().numpy()
-                    # print(f"INFO: Successfully used attention matrix from direct model output (outputs.attentions) for DiffLlama layer {effective_layer_idx_direct}, head {head_idx}.")
-                else:
-                    print(f"WARNING: Attention from outputs_model.attentions for layer {effective_layer_idx_direct} has shape {layer_attention_direct.shape} or head_idx {head_idx} invalid.")
-            else:
-                 print(f"WARNING: effective_layer_idx_direct {effective_layer_idx_direct} out of range for outputs_model.attentions (len {len(attentions_from_model_output)}).")
-        
-        if attention_matrix_to_return is None:
-            print(f"ERROR: Could not determine final attention matrix for DiffLlama layer {target_layer_idx}, head {head_idx} from model output.")
-
-        # print(f"DEBUG: get_diffllama_attention_components returning. Matrix shape: {attention_matrix_to_return.shape if attention_matrix_to_return is not None else 'None'}")
-        # print(f"DEBUG: Captured components: {captured_components}")
-        return attention_matrix_to_return, captured_components
-        
-    except Exception as e_forward:
-        print(f"ERROR during model forward pass or component extraction in get_diffllama_attention_components: {e_forward}")
-        import traceback
-        traceback.print_exc()
-        return None, captured_components
-    finally:
-        for hook_item in hooks: 
-            hook_item.remove()
-        if original_output_attentions_config is not None:
-             model.config.output_attentions = original_output_attentions_config
-
-def visualize_diffllama_attention(sample_question, layer_idx=-1, head_idx=0, save_dir="results/attention_maps"):
-    """
-    Specialized function to visualize differential attention for DiffLlama.
-    """
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-    print(f"Visualizing DiffLlama differential attention...")
-    print(f"Question: {sample_question[:100]}...")
-    
-    model, tokenizer = load_model_and_tokenizer("diffllama", device)
-    
-    prompt = f"Question: {sample_question}\nAnswer:"
-    
-    # use the specialized DiffLlama attention extraction
-    attention_matrix, components = get_diffllama_attention_components(
-        model, tokenizer, prompt, device, layer_idx, head_idx
-    )
-    
-    # get tokens
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512)
-    tokens = [tokenizer.decode([token_id]) for token_id in inputs['input_ids'][0]]
-    
-    if attention_matrix is not None:
-        # visualize the final differential attention
-        title = f"DiffLlama Differential Attention Layer {layer_idx} Head {head_idx}"
-        filename = f"diffllama_differential_attn_layer{layer_idx}_head{head_idx}.png"
-        save_path = os.path.join(save_dir, filename)
-        
-        plot_attention_heatmap(
-            attention_matrix, tokens, tokens, title, save_path
-        )
-        
-        # additional visualization: comparison of A1 and A2
-        if components.get('A1') is not None and components.get('A2') is not None:
-            A1 = components['A1'][0, head_idx].cpu().numpy()
-            A2 = components['A2'][0, head_idx].cpu().numpy()
-            
-            # visualize A1
-            plot_attention_heatmap(
-                A1, tokens, tokens, 
-                f"DiffLlama A1 (softmax(Q1K1T)) Layer {layer_idx} Head {head_idx}",
-                os.path.join(save_dir, f"diffllama_A1_layer{layer_idx}_head{head_idx}.png")
-            )
-            
-            # visualize A2
-            plot_attention_heatmap(
-                A2, tokens, tokens,
-                f"DiffLlama A2 (softmax(Q2K2T)) Layer {layer_idx} Head {head_idx}",
-                os.path.join(save_dir, f"diffllama_A2_layer{layer_idx}_head{head_idx}.png")
-            )
-            
-            print(f"Lambda value: {components.get('lambda', 'N/A')}")
-        
-        print(f"DiffLlama attention visualization completed!")
-    else:
-        print(f"Failed to extract DiffLlama differential attention")
-    
-    del model, tokenizer
-    if device == "cuda":
-        torch.cuda.empty_cache()
-
 if __name__ == "__main__":
     import os
     
@@ -1084,7 +712,7 @@ if __name__ == "__main__":
     ]
     
     # Test both models
-    for model_type in ["llama"]:
+    for model_type in ["diffllama", "llama"]:
         print(f"\n{'='*60}")
         print(f"ANALYZING {model_type.upper()} MODEL")
         print(f"{'='*60}")
