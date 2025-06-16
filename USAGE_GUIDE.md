@@ -236,7 +236,9 @@ if output_attentions:
     attn_weights = torch.clamp(attn_weights, min=0.0, max=1.0)
 ```
 
+Check the code diff in the image below: 
 
+![code-diff](https://github.com/user-attachments/assets/b8c8f1e0-451e-4800-b4fd-7cce8b6d78c1)
 
 ##### Why This Fix Is Needed:
 
