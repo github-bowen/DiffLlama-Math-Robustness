@@ -4,7 +4,7 @@ This guide provides detailed instructions on how to use the DiffLlama vs Llama n
 
 > [!Important]
 >
-> Attention matrix calculation for DiffLlama requires a specific fix in the `DiffLlamaAttention` class in the Hugging Face Transformers library (Usually located in `transformers/models/diffllama/modular_diffllama.py`). This fix is necessary to correctly visualize the differential attention weights. See the section on [DiffLlama Attention Matrix Fix](#diffllama-attention-matrix-fix) for details.
+> Attention matrix calculation for DiffLlama requires a specific fix in the `DiffLlamaAttention` class in the Hugging Face Transformers library (Usually located in `transformers/models/diffllama/modeling_diffllama.py`). This fix is necessary to correctly visualize the differential attention weights. See the section on [DiffLlama Attention Matrix Fix](#diffllama-attention-matrix-fix) for details.
 
 ## 📚 Table of Contents
 
@@ -218,13 +218,25 @@ python -m src.attention_visualizer
 
 #### DiffLlama Attention Matrix Fix
 
-When visualizing attention patterns for DiffLlama, the default implementation in Hugging Face Transformers library doesn't correctly return the differential attention weights. To properly visualize DiffLlama attention weights, you need to modify the `forward` method of `DiffLlamaAttention` class in `site-packages/transformers/models/diffllama/modular_diffllama.py`.
+When visualizing attention patterns for DiffLlama, the default implementation in Hugging Face Transformers library doesn't correctly return the differential attention weights. To properly visualize DiffLlama attention weights, you need to modify the `forward` method of `DiffLlamaAttention` class in `site-packages/transformers/models/diffllama/modeling_diffllama.py`.
 
 ##### Required Modification:
 
-Change from the left one to the right one: 
+Add the following code snippet to the `forward` method of `DiffLlamaAttention` class right after line 232 `attn_output = torch.matmul(attn_weights, value_states)`:
 
-![modular_diffllama.py change](https://github.com/user-attachments/assets/b48ae058-7192-44bc-842d-ed2854302e32)
+```python
+# Change the stored attn_weight to the difference of the two softmaxes: 
+# (softmax(q1, k1) - lambda_full * softmax(q2, k2))
+if output_attentions:
+    attn_weights1, attn_weights2 = torch.chunk(attn_weights, 2, dim=1)
+    attn_weights = attn_weights1 - lambda_full * attn_weights2
+    
+    # Negative values are introduced by subtraction 
+    # Scale elements of each row to [0, 1]
+    attn_weights = torch.clamp(attn_weights, min=0.0, max=1.0)
+```
+
+
 
 ##### Why This Fix Is Needed:
 

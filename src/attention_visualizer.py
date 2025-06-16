@@ -54,7 +54,6 @@ def get_attention_scores(model, tokenizer, text, device, model_type, layer_idx=-
     tokens = [tokenizer.decode([token_id]) for token_id in input_ids[0]]
     
     # Temporarily enable attention output
-    original_output_attentions = getattr(model.config, 'output_attentions', False)
     model.config.output_attentions = True
     
     attention_matrix = None
@@ -277,20 +276,6 @@ def visualize_sample_attention(model_type, sample_question, layer_idx=-1, head_i
                 save_path=os.path.join(save_dir, filename)
             )
         """    
-                        
-        if model_type == "diffllama":
-            print(f"\nDiffLlama Analysis Summary ({layer_info}, {head_info}):")
-            print(f"  Lambda std dev (config): {metadata.get('lambda_std_dev', 'N/A')}")
-            if metadata.get('lambda_params'):
-                print(f"  Lambda params (module):")
-                for p_name, p_val in metadata['lambda_params'].items():
-                    if isinstance(p_val, np.ndarray):
-                        print(f"    {p_name}: array of shape {p_val.shape}, mean={p_val.mean():.4f}")
-                    else:
-                        print(f"    {p_name}: {p_val}")
-            print(f"  Captured hook components: {len(metadata['captured_components'])}")
-            if metadata['captured_components']:
-                print(f"  Hooked component keys: {', '.join(metadata['captured_components'][:3])}{'...' if len(metadata['captured_components']) > 3 else ''}")
     
     else:
         print(f"No attention matrix available to visualize for {model_type} ({layer_info}, {head_info})")
@@ -731,27 +716,27 @@ if __name__ == "__main__":
                     save_dir=f"results/attention_maps/{model_type}/clean_q{i+1}"
                 )
                 
-                # For DiffLlama, also test different layers and heads
-                if model_type == "diffllama":
-                    print(f"  Additional DiffLlama analysis...")
+                # # For DiffLlama, also test different layers and heads
+                # if model_type == "diffllama":
+                #     print(f"  Additional DiffLlama analysis...")
                     
-                    # Test middle layer
-                    visualize_sample_attention(
-                        model_type, 
-                        question, 
-                        layer_idx=8,   # Middle layer
-                        head_idx=0,
-                        save_dir=f"results/attention_maps/{model_type}/clean_q{i+1}_middle"
-                    )
+                #     # Test middle layer
+                #     visualize_sample_attention(
+                #         model_type, 
+                #         question, 
+                #         layer_idx=8,   # Middle layer
+                #         head_idx=0,
+                #         save_dir=f"results/attention_maps/{model_type}/clean_q{i+1}_middle"
+                #     )
                     
-                    # Test different attention head
-                    visualize_sample_attention(
-                        model_type, 
-                        question, 
-                        layer_idx=-1,
-                        head_idx=1,    # Second head
-                        save_dir=f"results/attention_maps/{model_type}/clean_q{i+1}_head1"
-                    )
+                #     # Test different attention head
+                #     visualize_sample_attention(
+                #         model_type, 
+                #         question, 
+                #         layer_idx=-1,
+                #         head_idx=1,    # Second head
+                #         save_dir=f"results/attention_maps/{model_type}/clean_q{i+1}_head1"
+                #     )
                 
                 # Noisy versions (if noise injection is available)
                 try:
